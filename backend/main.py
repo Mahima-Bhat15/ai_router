@@ -36,6 +36,14 @@ async def call_claude(prompt: str, model_id: str, api_key: str) -> str:
         r = client.messages.create(model=model_id, max_tokens=4096,
             messages=[{"role":"user","content":prompt}])
         return r.content[0].text
+    except anthropic.AuthenticationError:
+        raise HTTPException(401, "Claude: invalid API key — check your key in the Keys panel")
+    except anthropic.RateLimitError:
+        raise HTTPException(429, "Claude rate limited")
+    except anthropic.APIStatusError as e:
+        if e.status_code == 429:
+            raise HTTPException(429, "Claude rate limited")
+        raise HTTPException(500, f"Claude API error {e.status_code}: {e.message}")
     except Exception as e:
         if any(k in str(e).lower() for k in ["429","rate"]):
             raise HTTPException(429, "Claude rate limited")
@@ -250,33 +258,35 @@ async def generate(req: GenerateRequest):
     provider = req.provider; model_id = req.model_id; prompt = req.reprompted_prompt
     failover_from = None
 
+    first_error = None
     try:
         key = get_provider_key(keys, provider)
         if not key or provider not in available:
             raise HTTPException(503, f"{provider} key not available")
         response_text = await CALLERS[provider](prompt, model_id, key)
     except HTTPException as e:
-        # Failover to next best provider
-        remaining = available - {req.provider} - get_limited_providers()
-        if remaining:
-            fb = select_model(intent=req.intent, available_providers=remaining)
-            failover_from = req.provider; provider = fb.provider; model_id = fb.model_id
-            prompt = reprompt(req.original_prompt, fb.provider, req.intent,
-                model_id=fb.model_id, model_display_name=fb.display_name)
-            try:
-                response_text = await CALLERS[fb.provider](prompt, fb.model_id, get_provider_key(keys, fb.provider))
-            except HTTPException:
-                remaining2 = remaining - {fb.provider}
-                if remaining2:
-                    fb2 = select_model(intent=req.intent, available_providers=remaining2)
-                    provider = fb2.provider; model_id = fb2.model_id
-                    prompt = reprompt(req.original_prompt, fb2.provider, req.intent,
-                        model_id=fb2.model_id, model_display_name=fb2.display_name)
-                    response_text = await CALLERS[fb2.provider](prompt, fb2.model_id, get_provider_key(keys, fb2.provider))
-                else:
-                    raise HTTPException(503, "All fallback providers failed")
-        else:
-            raise HTTPException(503, f"No fallback providers. Error: {e.detail}")
+        first_error = e.detail
+        # Failover: try all remaining available providers in order
+        remaining = list(available - {req.provider} - get_limited_providers())
+        response_text = None
+        for attempt_providers in [remaining, list(available - {req.provider})]:
+            if response_text is not None:
+                break
+            for fb_provider in attempt_providers:
+                try:
+                    fb = select_model(intent=req.intent, available_providers={fb_provider})
+                    failover_from = failover_from or req.provider
+                    provider = fb.provider; model_id = fb.model_id
+                    prompt = reprompt(req.original_prompt, fb.provider, req.intent,
+                        model_id=fb.model_id, model_display_name=fb.display_name)
+                    response_text = await CALLERS[fb.provider](prompt, fb.model_id, get_provider_key(keys, fb.provider))
+                    break
+                except HTTPException:
+                    continue
+        if response_text is None:
+            if len(available) <= 1:
+                raise HTTPException(503, f"{first_error}. Add more API keys to enable automatic fallback.")
+            raise HTTPException(503, f"All providers failed. Last error: {first_error}")
 
     from services.leaderboard_scraper import get_cached_benchmarks
     vendor = ""

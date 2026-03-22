@@ -497,22 +497,29 @@ async function loadChatsFromDB(){
   if(!currentUser)return;
   var res=await supa.from('chats').select('*').eq('user_id',currentUser.id).order('updated_at',{ascending:false});
   if(res.error){console.error('Load chats error:',res.error);return;}
-  if(res.data.length){
+  if(res.data&&res.data.length){
     chats=res.data.map(function(r){return{id:r.id,title:r.title,date:r.chat_date||'',html:r.html||''};});
     activeChatId=chats[0].id;
+    var activeHtml=chats[0].html;
+    cv.innerHTML=activeHtml&&activeHtml.trim()?activeHtml:renderWelcome();
   }else{
     var newId=uid();
     chats=[{id:newId,title:'New conversation',date:todayStr(),html:''}];
     activeChatId=newId;
+    cv.innerHTML=renderWelcome();
     await saveChatToDB(chats[0]);
   }
-  cv.innerHTML=getActiveChat().html||renderWelcome();
   renderChatList();
 }
 async function saveChatToDB(c){
-  if(!currentUser)return;
-  var res=await supa.from('chats').upsert({id:c.id,user_id:currentUser.id,title:c.title,chat_date:c.date,html:c.html,updated_at:new Date().toISOString()},{onConflict:'id'});
-  if(res.error)console.error('Save chat error:',res.error);
+  if(!currentUser||!c)return;
+  var res=await supa.from('chats').upsert(
+    {id:c.id,user_id:currentUser.id,title:c.title,chat_date:c.date,html:c.html,updated_at:new Date().toISOString()},
+    {onConflict:'id'}
+  );
+  if(res.error){
+    console.error('Save chat error:',res.error.message,res.error);
+  }
 }
 async function deleteChatFromDB(id){
   if(!currentUser)return;
@@ -544,6 +551,8 @@ async function onAuthChange(session){
 }
 
 supa.auth.onAuthStateChange(function(event,session){
+  // INITIAL_SESSION is handled by the getSession() call below — skip to avoid double load
+  if(event==='INITIAL_SESSION')return;
   onAuthChange(session);
 });
 
@@ -597,7 +606,13 @@ function vcolor(v){return VC[v]||VC.generic;}
 // ═══════════════════════════════════════════════════════════
 // CHAT STATE
 // ═══════════════════════════════════════════════════════════
-function uid(){return Math.random().toString(36).slice(2,10);}
+function uid(){
+  if(typeof crypto!=='undefined'&&crypto.randomUUID)return crypto.randomUUID();
+  // fallback for older browsers
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){
+    var r=Math.random()*16|0,v=c==='x'?r:(r&0x3|0x8);return v.toString(16);
+  });
+}
 function todayStr(){return new Date().toLocaleDateString([],{month:"short",day:"numeric"});}
 var firstId=uid();
 var chats=[{id:firstId,title:"New conversation",date:todayStr(),html:""}];
@@ -621,8 +636,12 @@ function newChat(){
   renderChatList();pi.focus();
 }
 function switchChat(id){
-  if(id===activeChatId)return;saveCurrentChatHtml();
-  activeChatId=id;cv.innerHTML=getActiveChat().html||renderWelcome();renderChatList();
+  if(id===activeChatId)return;
+  saveCurrentChatHtml();
+  activeChatId=id;
+  var c=getActiveChat();
+  cv.innerHTML=(c&&c.html&&c.html.trim())?c.html:renderWelcome();
+  renderChatList();
 }
 function delChat(id){
   chats=chats.filter(function(c){return c.id!==id;});
@@ -630,7 +649,16 @@ function delChat(id){
   if(activeChatId===id){activeChatId=chats[0].id;cv.innerHTML=getActiveChat().html||renderWelcome();}
   deleteChatFromDB(id);renderChatList();
 }
-function saveCurrentChatHtml(){var c=getActiveChat();if(c){c.html=cv.innerHTML;if(currentUser)saveChatToDB(c);}}
+function saveCurrentChatHtml(){
+  var c=getActiveChat();
+  if(!c)return;
+  // Clone the chat DOM, remove the welcome screen before saving
+  var clone=cv.cloneNode(true);
+  var wel=clone.querySelector('#wel');
+  if(wel)wel.remove();
+  c.html=clone.innerHTML;
+  if(currentUser)saveChatToDB(c);
+}
 function renderWelcome(){
   return '<div class="welcome" id="wel"><h2>You had the right question all along, we just tapped into it.</h2><p>You bring the thought. TAP does the rest — ranking seven models, selecting the sharpest one, refining your prompt, and delivering an answer worth having.</p><div class="exs"><button class="ex" onclick="useEx(this)">Write a Python script to parse CSV and find duplicates</button><button class="ex" onclick="useEx(this)">Explain how TCP/IP works in simple terms</button><button class="ex" onclick="useEx(this)">Compare React vs Vue for a new project</button><button class="ex" onclick="useEx(this)">Solve: integral of x²·sin(x) dx</button></div></div>';
 }
@@ -777,7 +805,7 @@ async function sendPrompt(prompt){
     if(!aR.ok)throw new Error((await aR.json()).detail||'Analyze failed');var a=await aR.json();
     await animSel(id,a);
     var sa=document.getElementById('sa-'+id),ph=sa.querySelector('.ph');ph.innerHTML='<div class="sp"></div> <span style="color:'+vcolor(a.selected_vendor)+'">'+a.selected_display_name+'</span> is generating...';cv.scrollTop=cv.scrollHeight;
-    var gR=await fetch(API+'/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reprompted_prompt:a.reprompted_prompt,provider:a.selected_provider,model_id:a.selected_model_id,original_prompt:prompt,intent:a.intent})});
+    var gR=await fetch(API+'/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reprompted_prompt:a.reprompted_prompt,provider:a.selected_provider,model_id:a.selected_model_id,original_prompt:prompt,intent:a.intent,api_keys:userKeys})});
     if(!gR.ok)throw new Error((await gR.json()).detail||'Generate failed');var g=await gR.json();
 
     // Failover animation: if model changed, show the transition
@@ -862,7 +890,7 @@ var tutSteps = [
     target: '.keys-toggle',
     title: 'Add API Keys',
     desc: 'Paste your free API keys (Gemini, Groq, OpenRouter) to unlock models. No credit card needed. Keys are stored locally in your browser.',
-    pos: 'right'
+    pos: 'top'
   }
 ];
 var tutCurrent = 0;
