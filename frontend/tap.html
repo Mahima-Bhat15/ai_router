@@ -434,9 +434,51 @@
     margin-bottom:48px; position:relative; z-index:1; font-style:italic;
   }
 
+  /* ═══ TEAM ═══ */
+  .team { padding:120px 48px; max-width:1100px; margin:0 auto; text-align:center; }
+  .team-grid {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:24px; margin-top:60px;
+  }
+  .team-card {
+    background:var(--bg2); border:1px solid var(--line); padding:36px 24px 28px;
+    position:relative; transition:all 0.3s; overflow:hidden;
+  }
+  .team-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:var(--cyan); transform:scaleX(0); transform-origin:center;
+    transition:transform 0.4s ease;
+  }
+  .team-card:hover::before { transform:scaleX(1); }
+  .team-card:hover { border-color:rgba(108,99,255,0.3); background:var(--bg3); }
+  .team-avatar {
+    width:100px; height:100px; border-radius:50%; margin:0 auto 16px;
+    background:var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Roboto',sans-serif; font-weight:900; font-size:22px; color:var(--bg);
+  }
+  .team-name {
+    font-family:'Roboto',sans-serif; font-weight:700; font-size:16px;
+    color:var(--white); margin-bottom:6px; letter-spacing:0.5px;
+  }
+  .team-role {
+    font-family:'Roboto',sans-serif; font-size:12px; font-weight:500;
+    color:var(--cyan); letter-spacing:2px; text-transform:uppercase;
+  }
+  @media(max-width:900px){
+    .team-grid{grid-template-columns:repeat(2,1fr);gap:16px;}
+  }
+  @media(max-width:500px){
+    .team-grid{grid-template-columns:1fr;}
+  }
+
+  /* ═══ FOOTER ═══ */
   footer {
-    border-top:1px solid var(--line); padding:36px 48px;
-    display:flex; align-items:center; justify-content:space-between; background:var(--bg2);
+    border-top:1px solid var(--line); padding:32px 48px 24px;
+    background:var(--bg2); text-align:center;
+  }
+  .footer-top {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid var(--line);
   }
   .footer-logo {
     font-family:'Roboto',sans-serif;font-weight:900; font-size:22px;
@@ -446,9 +488,17 @@
     font-family:'Roboto',sans-serif; font-size:12px;
     letter-spacing:4px; color:var(--grey2); text-transform:uppercase;
   }
-  .footer-right {
-    font-family:'Roboto',sans-serif; font-size:12px;
-    letter-spacing:2px; color:var(--grey); opacity:0.5;
+  .footer-links {
+    display:flex; gap:24px; list-style:none;
+  }
+  .footer-links a {
+    font-family:'Roboto',sans-serif; font-size:12px; color:var(--grey2);
+    text-decoration:none; letter-spacing:1px; transition:color 0.2s;
+  }
+  .footer-links a:hover { color:var(--cyan); }
+  .footer-copyright {
+    font-family:'Roboto',sans-serif; font-size:11px;
+    color:var(--grey); letter-spacing:1px; opacity:0.6;
   }
 
   @media(max-width:900px){
@@ -540,6 +590,7 @@
       <li><a href="#features-section">Features</a></li>
       <li><a href="#pipeline-section">Pipeline</a></li>
       <li><a href="#models-section">Models</a></li>
+      <li><a href="#team-section">Team</a></li>
     </ul>
     <a href="/chat" class="nav-btn" style="text-decoration:none;margin-left:40px"><span>Open Chat →</span></a>
     <div id="lp-user-area"><button class="lp-user-btn" onclick="lpShowAuth('signin')">👤 Login</button></div>
@@ -697,10 +748,44 @@
     <button class="btn-primary" onclick="launchTap()">Launch TAP →</button>
   </section>
 
+  <section class="team" id="team-section">
+    <div class="section-label">// The Team</div>
+    <div class="section-title">Meet the <span>Team</span></div>
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="team-avatar"><img src="/static/images/yash.JPG" alt="YC" style="width:100%; height:100%; border-radius:50%; object-fit:cover;"></div>
+        <div class="team-name">Yash Ravindra Charde</div>
+        <div class="team-role">Co-Founder</div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar"><img src="/static/images/mahima.jpg" alt="MB" style="width:100%; height:100%; border-radius:50%; object-fit:cover;"></div>
+        <div class="team-name">Mahima Ramdas Bhat</div>
+        <div class="team-role">Co-Founder</div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar"><img src="/static/images/pradnya.jpg" alt="PN" style="width:100%; height:100%; border-radius:50%; object-fit:cover;"></div>
+        <div class="team-name">Pradnya Sanjeev Nidagudi</div>
+        <div class="team-role">Co-Founder</div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar"><img src="/static/images/sahana.PNG" alt="SH" style="width:100%; height:100%; border-radius:50%; object-fit:cover;"></div>
+        <div class="team-name">Sahana Jayasimha Holkal</div>
+        <div class="team-role">Co-Founder</div>
+      </div>
+    </div>
+  </section>
+
   <footer>
-    <div class="footer-logo">TAP</div>
-    <div class="footer-mid">Translate · Adapt · Precision</div>
-    <div class="footer-right">© 2025 TAP AI</div>
+    <div class="footer-top">
+      <div class="footer-logo">TAP</div>
+      <div class="footer-mid">Translate · Adapt · Precision</div>
+      <ul class="footer-links">
+        <li><a href="#features-section">Features</a></li>
+        <li><a href="#pipeline-section">Pipeline</a></li>
+        <li><a href="#team-section">Team</a></li>
+      </ul>
+    </div>
+    <div class="footer-copyright">© 2025 TAP AI — Yash Charde, Mahima Bhat, Pradnya Nidagudi, Sahana Holkal. All rights reserved.</div>
   </footer>
 </div>
 

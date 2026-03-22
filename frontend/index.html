@@ -216,6 +216,27 @@ body{font-family:'Roboto',sans-serif;background:var(--bg);color:var(--text);heig
 .lbar{width:100%;height:6px;border-radius:3px;background:var(--surface3);overflow:hidden}.lbf{height:100%;border-radius:3px}
 .vpill{font-size:8px;padding:1px 5px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-weight:600}
 @media(max-width:680px){.sidebar{display:none}}
+
+/* ═══ TUTORIAL OVERLAY ═══ */
+.tut-overlay{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:0;transition:opacity .3s ease;}
+.tut-overlay.active{opacity:1;pointer-events:auto;}
+.tut-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1;}
+.tut-highlight{position:absolute;z-index:2;border:2px solid var(--accent);border-radius:var(--r2);box-shadow:0 0 0 4000px rgba(0,0,0,.65),0 0 30px rgba(108,99,255,.4);transition:all .4s cubic-bezier(.4,0,.2,1);pointer-events:none;}
+.tut-card{position:absolute;z-index:3;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:20px 24px;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.6);animation:popIn .25s ease;pointer-events:auto;}
+.tut-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:var(--r2) var(--r2) 0 0;}
+.tut-step-badge{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.tut-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.tut-desc{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:16px;}
+.tut-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.tut-dots{display:flex;gap:6px;}
+.tut-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .2s;}
+.tut-dot.active{background:var(--accent);}
+.tut-btns{display:flex;gap:8px;}
+.tut-btn{font-family:inherit;font-size:12px;font-weight:600;padding:8px 16px;border-radius:var(--r);cursor:pointer;transition:.15s;letter-spacing:0.5px;}
+.tut-btn.skip{background:transparent;border:1px solid var(--border);color:var(--text3);}
+.tut-btn.skip:hover{border-color:var(--text2);color:var(--text2);}
+.tut-btn.next{background:var(--accent);border:1px solid var(--accent);color:#fff;}
+.tut-btn.next:hover{background:#5a52e0;box-shadow:0 0 14px rgba(108,99,255,.3);}
 </style>
 </head>
 <body>
@@ -808,6 +829,128 @@ async function animSel(id,a){var sl=document.getElementById('sl-'+id),sa=documen
 // LEADERBOARD (unchanged)
 // ═══════════════════════════════════════════════════════════
 async function loadLB(){var lv=document.getElementById('lv');try{var lb=await(await fetch(API+'/api/leaderboard')).json();var cats={code_generation:'Coding',code_review:'Code Review',explanation:'Explanation',creative_writing:'Creative Writing',research:'Research',math_reasoning:'Math',summarization:'Speed / Summary',conversation:'Conversation'};var h='<div class="lbh"><div><h2>Model Leaderboard</h2><div class="lbsrc">Source: <a href="'+lb.source_url+'" target="_blank" style="color:var(--accent)">'+lb.source+'</a></div></div><button class="lbr" onclick="loadLB()">↻ Refresh</button></div>';h+='<div class="lbs"><h3>Overall ELO</h3><table class="lt"><tr><th>#</th><th>Model</th><th>Vendor</th><th>ELO</th><th style="width:160px"></th></tr>';lb.overall.forEach(function(m,i){var c=vcolor(m.vendor),p=((m.overall_elo-1000)/400*100).toFixed(0);h+='<tr><td style="color:var(--text3);font-weight:700">'+(i+1)+'</td><td style="color:'+c+'">'+m.display_name+'</td><td><span class="vpill" style="background:'+c+'18;color:'+c+'">'+m.vendor+'</span></td><td>'+m.overall_elo+'</td><td><div class="lbar"><div class="lbf" style="width:'+p+'%;background:'+c+'"></div></div></td></tr>';});h+='</table></div>';for(var cat in lb.by_category){var models=lb.by_category[cat];h+='<div class="lbs"><h3>'+(cats[cat]||cat)+'</h3><table class="lt"><tr><th>#</th><th>Model</th><th>Vendor</th><th>Score</th><th style="width:160px"></th></tr>';models.forEach(function(m){var c=vcolor(m.vendor);h+='<tr><td style="color:var(--text3);font-weight:700">'+m.rank+'</td><td style="color:'+c+'">'+m.display_name+'</td><td><span class="vpill" style="background:'+c+'18;color:'+c+'">'+m.vendor+'</span></td><td>'+m.intent_score+'</td><td><div class="lbar"><div class="lbf" style="width:'+m.intent_score+'%;background:'+c+'"></div></div></td></tr>';});h+='</table></div>';}lv.innerHTML=h;}catch(e){lv.innerHTML='<div class="err"><span>Backend not reachable</span></div>';}}
+
+// ═══════════════════════════════════════════════════════════
+// 5-STEP TUTORIAL
+// ═══════════════════════════════════════════════════════════
+var tutSteps = [
+  {
+    target: '.sidebar',
+    title: 'Your Conversations',
+    desc: 'All your chats live here. Click "+ New chat" to start fresh, or switch between past conversations. Your API keys are at the bottom.',
+    pos: 'right'
+  },
+  {
+    target: '.model-pick-btn',
+    title: 'Pick a Model',
+    desc: 'Click here to choose a specific AI model, or leave it on Auto to let TAP pick the best one for your prompt.',
+    pos: 'bottom'
+  },
+  {
+    target: '.tabs',
+    title: 'Auto Routing & Leaderboard',
+    desc: 'In Auto mode, TAP classifies your intent, ranks 7+ models on live benchmarks, and picks the winner. Switch to Leaderboard to see all rankings.',
+    pos: 'bottom'
+  },
+  {
+    target: '.inp-wrap',
+    title: 'Type Your Prompt',
+    desc: 'Enter any question or task here. TAP will detect the intent, select the best model, re-engineer your prompt, and stream the response — all in one step.',
+    pos: 'top'
+  },
+  {
+    target: '.keys-toggle',
+    title: 'Add API Keys',
+    desc: 'Paste your free API keys (Gemini, Groq, OpenRouter) to unlock models. No credit card needed. Keys are stored locally in your browser.',
+    pos: 'right'
+  }
+];
+var tutCurrent = 0;
+var tutOverlay = null;
+
+function tutHasSeen() {
+  try { return localStorage.getItem('tap_tut_done') === '1'; } catch(e) { return false; }
+}
+function tutMarkDone() {
+  try { localStorage.setItem('tap_tut_done', '1'); } catch(e) {}
+}
+
+function tutStart() {
+  if (tutHasSeen()) return;
+  tutCurrent = 0;
+  // Create overlay
+  tutOverlay = document.createElement('div');
+  tutOverlay.className = 'tut-overlay';
+  tutOverlay.innerHTML = '<div class="tut-backdrop"></div><div class="tut-highlight" id="tut-hl"></div><div class="tut-card" id="tut-card"></div>';
+  document.body.appendChild(tutOverlay);
+  // Make sure sidebar is open for step 0
+  document.getElementById('sidebar').classList.remove('closed');
+  setTimeout(function() { tutOverlay.classList.add('active'); tutShow(); }, 300);
+}
+
+function tutShow() {
+  var step = tutSteps[tutCurrent];
+  var el = document.querySelector(step.target);
+  if (!el) { tutNext(); return; }
+  var rect = el.getBoundingClientRect();
+  var hl = document.getElementById('tut-hl');
+  var card = document.getElementById('tut-card');
+  var pad = 6;
+  hl.style.top = (rect.top - pad) + 'px';
+  hl.style.left = (rect.left - pad) + 'px';
+  hl.style.width = (rect.width + pad*2) + 'px';
+  hl.style.height = (rect.height + pad*2) + 'px';
+
+  // Dots
+  var dots = '';
+  for (var i = 0; i < tutSteps.length; i++) dots += '<div class="tut-dot' + (i === tutCurrent ? ' active' : '') + '"></div>';
+
+  var isLast = tutCurrent === tutSteps.length - 1;
+  card.innerHTML =
+    '<div class="tut-step-badge">Step ' + (tutCurrent+1) + ' of ' + tutSteps.length + '</div>' +
+    '<div class="tut-title">' + step.title + '</div>' +
+    '<div class="tut-desc">' + step.desc + '</div>' +
+    '<div class="tut-actions">' +
+      '<div class="tut-dots">' + dots + '</div>' +
+      '<div class="tut-btns">' +
+        '<button class="tut-btn skip" onclick="tutEnd()">Skip</button>' +
+        '<button class="tut-btn next" onclick="' + (isLast ? 'tutEnd()' : 'tutNext()') + '">' + (isLast ? 'Got it!' : 'Next →') + '</button>' +
+      '</div>' +
+    '</div>';
+
+  // Position the card relative to the highlight
+  var cardW = 340, cardH = 200;
+  if (step.pos === 'right') {
+    card.style.top = rect.top + 'px';
+    card.style.left = (rect.right + 16) + 'px';
+    card.style.bottom = 'auto'; card.style.right = 'auto';
+  } else if (step.pos === 'bottom') {
+    card.style.top = (rect.bottom + 16) + 'px';
+    card.style.left = Math.max(12, rect.left - 40) + 'px';
+    card.style.bottom = 'auto'; card.style.right = 'auto';
+  } else if (step.pos === 'top') {
+    card.style.bottom = (window.innerHeight - rect.top + 16) + 'px';
+    card.style.left = Math.max(12, rect.left) + 'px';
+    card.style.top = 'auto'; card.style.right = 'auto';
+  }
+}
+
+function tutNext() {
+  tutCurrent++;
+  if (tutCurrent >= tutSteps.length) { tutEnd(); return; }
+  tutShow();
+}
+
+function tutEnd() {
+  tutMarkDone();
+  if (tutOverlay) {
+    tutOverlay.classList.remove('active');
+    setTimeout(function() { if (tutOverlay) { tutOverlay.remove(); tutOverlay = null; } }, 300);
+  }
+}
+
+// Launch tutorial on page load (first visit only)
+setTimeout(tutStart, 1200);
 </script>
 </body>
 </html>
