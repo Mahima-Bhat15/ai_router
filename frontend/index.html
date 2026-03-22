@@ -718,18 +718,22 @@ async function loadChatsFromDB(){
     chats.unshift({id:newId,title:'New conversation',date:todayStr(),html:''});
     activeChatId=newId;
     cv.innerHTML=renderWelcome();
-    saveChatToDB(chats[0]);
   }else{
     var newId=uid();
     chats=[{id:newId,title:'New conversation',date:todayStr(),html:''}];
     activeChatId=newId;
     cv.innerHTML=renderWelcome();
-    await saveChatToDB(chats[0]);
   }
   renderChatList();
 }
+function chatHasMessages(c){
+  if(!c||!c.html||!c.html.trim())return false;
+  return c.html.indexOf('class="msg ')!==-1;
+}
 async function saveChatToDB(c){
   if(!currentUser||!c)return;
+  // Don't save empty chats (no messages) to the database
+  if(!chatHasMessages(c))return;
   var res=await supa.from('chats').upsert(
     {id:c.id,user_id:currentUser.id,title:c.title,chat_date:c.date,html:c.html,updated_at:new Date().toISOString()},
     {onConflict:'id'}
@@ -852,7 +856,6 @@ function newChat(){
   saveCurrentChatHtml();var id=uid();
   chats.unshift({id:id,title:"New conversation",date:todayStr(),html:""});
   activeChatId=id;cv.innerHTML=renderWelcome();
-  if(currentUser)saveChatToDB(chats[0]);
   renderChatList();pi.focus();
 }
 function switchChat(id){
@@ -865,7 +868,7 @@ function switchChat(id){
 }
 function delChat(id){
   chats=chats.filter(function(c){return c.id!==id;});
-  if(!chats.length){var nid=uid();chats=[{id:nid,title:"New conversation",date:todayStr(),html:""}];if(currentUser)saveChatToDB(chats[0]);}
+  if(!chats.length){var nid=uid();chats=[{id:nid,title:"New conversation",date:todayStr(),html:""}];}
   if(activeChatId===id){activeChatId=chats[0].id;cv.innerHTML=getActiveChat().html||renderWelcome();}
   deleteChatFromDB(id);renderChatList();
 }
