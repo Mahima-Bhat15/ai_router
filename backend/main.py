@@ -452,8 +452,19 @@ async def reset_quota(provider: str):
 FRONTEND_DIR = pathlib.Path(__file__).parent.parent / "frontend"
 if FRONTEND_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
+
     @app.get("/")
-    async def serve_frontend(): return FileResponse(str(FRONTEND_DIR / "index.html"))
+    async def serve_landing():
+        """Landing page with intro animation."""
+        landing = FRONTEND_DIR / "tap.html"
+        if landing.exists():
+            return FileResponse(str(landing))
+        return FileResponse(str(FRONTEND_DIR / "index.html"))
+
+    @app.get("/chat")
+    async def serve_chat():
+        """Main chat interface."""
+        return FileResponse(str(FRONTEND_DIR / "index.html"))
 
 if __name__ == "__main__":
     import uvicorn; uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

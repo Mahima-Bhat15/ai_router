@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TAP — Translate. Adapt. Precision.</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --cyan: #00F5FF;
+    --cyan-dim: #007A8A;
+    --cyan-glow: rgba(0,245,255,0.35);
+    --cyan-soft: rgba(0,245,255,0.08);
+    --orange: #FF6B2B;
+    --orange-glow: rgba(255,107,43,0.4);
+    --green: #00FF88;
+    --bg: #020408;
+    --bg2: #060C10;
+    --bg3: #0A1520;
+    --white: #D0F0F5;
+    --grey: #2A4A55;
+    --grey2: #4A7A88;
+    --line: rgba(0,245,255,0.15);
+    --line2: rgba(0,245,255,0.07);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    background:var(--bg); color:var(--white);
+    font-family:'Share Tech Mono',monospace;
+    overflow-x:hidden; min-height:100vh; cursor:crosshair;
+  }
+  body::after {
+    content:''; position:fixed; inset:0; z-index:9998; pointer-events:none;
+    background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);
+    animation:scanroll 8s linear infinite;
+  }
+  @keyframes scanroll{0%{background-position:0 0}100%{background-position:0 100px}}
+  body::before {
+    content:''; position:fixed; inset:0; z-index:9997; pointer-events:none; opacity:0.2;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+  #matrix-canvas { position:fixed; inset:0; z-index:0; opacity:0.1; pointer-events:none; }
+  .grid-bg {
+    position:fixed; inset:0; pointer-events:none; z-index:1;
+    background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);
+    background-size:50px 50px;
+  }
+
+  /* ═══ INTRO ═══ */
+  #intro {
+    position:fixed; inset:0; z-index:100;
+    background:var(--bg); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; overflow:hidden;
+  }
+  #intro-matrix { position:absolute; inset:0; z-index:0; opacity:0.15; pointer-events:none; }
+  .intro-vignette {
+    position:absolute; inset:0; z-index:1; pointer-events:none;
+    background:radial-gradient(ellipse 70% 70% at 50% 50%,transparent 40%,rgba(2,4,8,0.9) 100%);
+  }
+  #boot-text {
+    position:absolute; top:8%; left:50%; transform:translateX(-50%);
+    z-index:2; text-align:left; width:min(640px,90vw);
+    font-family:'Share Tech Mono',monospace;
+    font-size:clamp(9px,1.1vw,12px); color:var(--cyan-dim);
+    line-height:2; letter-spacing:1px;
+  }
+  .boot-line { opacity:0; display:block; }
+  .boot-cursor {
+    display:inline-block; width:7px; height:13px;
+    background:var(--cyan); vertical-align:middle;
+    animation:blinkCursor 0.7s infinite; margin-left:2px;
+  }
+  @keyframes blinkCursor{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+  /* ── INTRO PHASES ── */
+  /* All T, A, P letters share the same font size throughout every phase */
+  :root { --tap-size: clamp(100px,20vw,280px); }
+
+  .phase-words {
+    position:absolute; z-index:3;
+    display:flex; flex-direction:row; align-items:center;
+    gap:0; opacity:0; white-space:nowrap;
+  }
+  .word-block {
+    display:inline-flex; align-items:center;
+    opacity:0; transform:translateY(24px);
+    transition: opacity 0.55s cubic-bezier(0.16,1,0.3,1),
+                transform 0.55s cubic-bezier(0.16,1,0.3,1);
+  }
+  /* The big letter — same size as final TAP word */
+  .word-letter {
+    font-family:'Bebas Neue',sans-serif;
+    font-size: var(--tap-size);
+    color:var(--cyan);
+    text-shadow:0 0 30px var(--cyan-glow),0 0 80px rgba(0,245,255,0.15);
+    line-height:1; display:inline-block; flex-shrink:0;
+    transition: letter-spacing 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+  /* The tail (ranslate, dapt, recision) */
+  .word-rest {
+    font-family:'Rajdhani',sans-serif;
+    font-size:clamp(18px,3.2vw,52px);
+    font-weight:300; letter-spacing:4px; color:var(--white);
+    text-transform:uppercase; line-height:1; opacity:0.75;
+    display:inline-block; overflow:hidden; white-space:nowrap;
+    max-width:320px;
+    transition: max-width 0.65s cubic-bezier(0.4,0,0.2,1),
+                opacity 0.5s ease,
+                margin-left 0.65s cubic-bezier(0.4,0,0.2,1);
+    margin-left: 8px;
+  }
+  /* Separator dots */
+  .word-sep {
+    font-family:'Share Tech Mono',monospace;
+    font-size:clamp(16px,2.5vw,36px); color:var(--cyan-dim);
+    opacity:0.35; display:inline-block;
+    margin:0 clamp(16px,2.5vw,44px);
+    transition: opacity 0.5s ease,
+                margin 0.65s cubic-bezier(0.4,0,0.2,1),
+                font-size 0.5s ease;
+  }
+
+  /* Final TAP word — same font size as .word-letter */
+  .phase-tap { position:absolute; z-index:3; opacity:0; text-align:center; }
+  .tap-word {
+    font-family:'Bebas Neue',sans-serif;
+    font-size: var(--tap-size);
+    color:var(--cyan);
+    text-shadow:0 0 30px var(--cyan-glow),0 0 80px rgba(0,245,255,0.2),0 0 160px rgba(0,245,255,0.1);
+    line-height:1; letter-spacing: clamp(8px,2vw,24px);
+  }
+
+  .phase-tagline {
+    position:absolute; z-index:3;
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    opacity:0; top:62%;
+  }
+  .tagline-sub {
+    font-family:'Share Tech Mono',monospace; font-size:clamp(10px,1.5vw,14px);
+    letter-spacing:6px; color:var(--cyan); opacity:0.5; text-transform:uppercase;
+  }
+  .tagline-cta {
+    font-family:'Rajdhani',sans-serif; font-size:clamp(15px,2.5vw,26px);
+    font-weight:300; letter-spacing:3px; color:var(--white); opacity:0.85; font-style:italic;
+  }
+  .tap-blink {
+    font-family:'Share Tech Mono',monospace; font-size:clamp(9px,1.2vw,11px);
+    color:var(--cyan-dim); letter-spacing:4px; margin-top:6px; animation:blinkTag 1.4s infinite;
+  }
+  @keyframes blinkTag{0%,100%{opacity:0.5}50%{opacity:0.1}}
+
+  /* ═══ MAIN ═══ */
+  #main { opacity:0; transition:opacity 1s ease; position:relative; z-index:2; }
+  #main.visible { opacity:1; }
+
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:50;
+    display:flex; align-items:center; justify-content:flex-start;
+    padding:18px 48px; border-bottom:1px solid var(--line);
+    background:rgba(2,4,8,0.92); backdrop-filter:blur(16px);
+  }
+  .nav-logo {
+    font-family:'Bebas Neue',sans-serif; font-size:30px;
+    color:var(--cyan); letter-spacing:8px; text-shadow:0 0 20px var(--cyan-glow);
+    display:flex; align-items:center; gap:0; cursor:pointer;
+  }
+  .nav-logo-text { display:inline-block; }
+  .nav-logo-cursor {
+    display:inline-block; width:3px; height:28px;
+    background:var(--cyan); margin-left:4px;
+    box-shadow:0 0 10px var(--cyan-glow);
+    animation:cursorBlink 1s step-end infinite;
+    vertical-align:middle; position:relative; top:-1px;
+  }
+  @keyframes cursorBlink {
+    0%,100%{opacity:1} 50%{opacity:0}
+  }
+  .nav-links { display:flex; gap:40px; list-style:none; }
+  .nav-links a {
+    font-family:'Share Tech Mono',monospace; font-size:11px;
+    letter-spacing:3px; text-transform:uppercase;
+    color:var(--grey2); text-decoration:none; transition:color 0.2s;
+  }
+  .nav-links a:hover { color:var(--cyan); text-shadow:0 0 10px var(--cyan-glow); }
+  .nav-btn {
+    font-family:'Share Tech Mono',monospace; font-size:11px;
+    letter-spacing:3px; padding:10px 24px;
+    border:1px solid var(--cyan); color:var(--cyan);
+    background:transparent; cursor:pointer; transition:all 0.2s;
+    text-transform:uppercase; position:relative; overflow:hidden;
+  }
+  .nav-btn::before {
+    content:''; position:absolute; inset:0; background:var(--cyan);
+    transform:translateX(-101%); transition:transform 0.25s ease;
+  }
+  .nav-btn:hover::before { transform:translateX(0); }
+  .nav-btn:hover { color:var(--bg); box-shadow:0 0 20px var(--cyan-glow); }
+  .nav-btn span { position:relative; z-index:1; }
+
+  .hero {
+    min-height:100vh; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    padding:120px 48px 80px; text-align:center; position:relative; overflow:hidden;
+  }
+  .hero::before {
+    content:''; position:absolute; width:700px; height:700px;
+    background:radial-gradient(circle,rgba(0,245,255,0.05) 0%,transparent 70%);
+    top:50%; left:50%; transform:translate(-50%,-50%);
+    pointer-events:none; animation:orbPulse 5s ease-in-out infinite;
+  }
+  @keyframes orbPulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:1}50%{transform:translate(-50%,-50%) scale(1.15);opacity:0.6}}
+  .hero-eyebrow {
+    font-family:'Share Tech Mono',monospace; font-size:11px;
+    letter-spacing:6px; color:var(--orange); text-transform:uppercase;
+    margin-bottom:28px; border:1px solid rgba(255,107,43,0.3);
+    padding:6px 20px; display:inline-block;
+  }
+  .hero-title {
+    font-family:'Bebas Neue',sans-serif; font-size:clamp(100px,22vw,280px);
+    line-height:0.9; color:var(--cyan);
+    text-shadow:0 0 60px var(--cyan-glow),0 0 120px rgba(0,245,255,0.1);
+    letter-spacing:20px; margin-bottom:16px; position:relative; z-index:1;
+  }
+  .hero-expand {
+    display:flex; gap:clamp(16px,3vw,48px); margin-bottom:28px; position:relative; z-index:1;
+  }
+  .hero-word {
+    font-family:'Rajdhani',sans-serif; font-size:clamp(12px,1.8vw,18px);
+    font-weight:300; letter-spacing:5px; text-transform:uppercase; color:var(--grey2);
+  }
+  .hero-word b { color:var(--cyan); font-weight:700; }
+  .hero-divider { color:var(--grey); opacity:0.4; font-family:'Share Tech Mono',monospace; }
+  .hero-tagline {
+    font-family:'Rajdhani',sans-serif; font-size:clamp(18px,3vw,32px);
+    font-weight:300; letter-spacing:2px; color:var(--white); opacity:0.8;
+    margin-bottom:52px; font-style:italic; position:relative; z-index:1;
+  }
+  .hero-actions { display:flex; gap:20px; align-items:center; position:relative; z-index:1; }
+  .btn-primary {
+    font-family:'Share Tech Mono',monospace; font-size:12px;
+    letter-spacing:3px; padding:16px 40px;
+    background:var(--cyan); color:var(--bg); border:none; cursor:pointer;
+    text-transform:uppercase; transition:all 0.25s; font-weight:bold;
+  }
+  .btn-primary:hover { box-shadow:0 0 40px var(--cyan-glow); transform:translateY(-2px); }
+  .btn-ghost {
+    font-family:'Share Tech Mono',monospace; font-size:12px;
+    letter-spacing:3px; padding:16px 40px;
+    background:transparent; color:var(--grey2);
+    border:1px solid var(--grey); cursor:pointer;
+    text-transform:uppercase; transition:all 0.25s; opacity:0.7;
+  }
+  .btn-ghost:hover { border-color:var(--cyan); color:var(--cyan); opacity:1; }
+  .scroll-hint {
+    position:absolute; bottom:36px;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    font-family:'Share Tech Mono',monospace; font-size:9px;
+    letter-spacing:4px; color:var(--grey2); text-transform:uppercase;
+  }
+  .scroll-line {
+    width:1px; height:40px; background:linear-gradient(var(--cyan),transparent);
+    animation:scrollPulse 2s infinite;
+  }
+  @keyframes scrollPulse{0%,100%{opacity:0.3;transform:scaleY(1)}50%{opacity:1;transform:scaleY(0.6)}}
+
+  .status-bar {
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:12px 48px; background:var(--bg2);
+    display:flex; align-items:center; gap:40px; overflow:hidden; position:relative;
+  }
+  .status-bar::before,.status-bar::after {
+    content:''; position:absolute; top:0; bottom:0; width:80px; z-index:2;
+  }
+  .status-bar::before{left:0;background:linear-gradient(90deg,var(--bg2),transparent);}
+  .status-bar::after{right:0;background:linear-gradient(-90deg,var(--bg2),transparent);}
+  .status-ticker { display:flex; gap:40px; animation:ticker 30s linear infinite; flex-shrink:0; }
+  @keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  .status-item {
+    display:flex; align-items:center; gap:8px; flex-shrink:0;
+    font-family:'Share Tech Mono',monospace; font-size:10px;
+    letter-spacing:2px; color:var(--grey2); text-transform:uppercase; white-space:nowrap;
+  }
+  .status-dot {
+    width:6px; height:6px; border-radius:50%; background:var(--green);
+    box-shadow:0 0 8px var(--green); animation:statusPulse 2s infinite;
+  }
+  @keyframes statusPulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+  .features { padding:120px 48px; max-width:1300px; margin:0 auto; }
+  .section-label {
+    font-family:'Share Tech Mono',monospace; font-size:11px;
+    letter-spacing:5px; color:var(--orange); text-transform:uppercase;
+    margin-bottom:12px; opacity:0.8;
+  }
+  .section-title {
+    font-family:'Bebas Neue',sans-serif; font-size:clamp(44px,7vw,88px);
+    letter-spacing:4px; color:var(--white); margin-bottom:64px; line-height:1;
+  }
+  .section-title span { color:var(--cyan); }
+  .features-grid {
+    display:grid; grid-template-columns:repeat(3,1fr);
+    gap:1px; background:var(--line); border:1px solid var(--line);
+  }
+  .feature-card {
+    background:var(--bg2); padding:44px 36px; position:relative;
+    transition:background 0.3s; overflow:hidden;
+  }
+  .feature-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,var(--cyan),var(--orange));
+    transform:scaleX(0); transform-origin:left; transition:transform 0.4s ease;
+  }
+  .feature-card:hover::before { transform:scaleX(1); }
+  .feature-card:hover { background:var(--bg3); }
+  .feature-num {
+    font-family:'Share Tech Mono',monospace; font-size:10px;
+    letter-spacing:3px; color:var(--cyan); opacity:0.4; margin-bottom:20px;
+  }
+  .feature-icon { font-size:26px; margin-bottom:18px; }
+  .feature-title {
+    font-family:'Bebas Neue',sans-serif; font-size:26px;
+    letter-spacing:3px; color:var(--white); margin-bottom:14px;
+  }
+  .feature-desc {
+    font-family:'Rajdhani',sans-serif; font-size:15px;
+    font-weight:300; line-height:1.7; color:var(--grey2);
+  }
+
+  .pipeline {
+    padding:120px 48px;
+    background:linear-gradient(180deg,var(--bg2) 0%,var(--bg3) 50%,var(--bg2) 100%);
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+  }
+  .pipeline-inner { max-width:1300px; margin:0 auto; }
+  .pipeline-steps { display:flex; align-items:stretch; gap:0; margin-top:72px; }
+  .pipeline-step {
+    flex:1; padding:36px 28px; border:1px solid var(--line);
+    position:relative; transition:all 0.3s; background:var(--bg2);
+  }
+  .pipeline-step:hover { border-color:var(--cyan-dim); background:var(--bg3); }
+  .pipeline-step+.pipeline-step { border-left:none; }
+  .step-num {
+    font-family:'Share Tech Mono',monospace; font-size:9px;
+    letter-spacing:3px; color:var(--cyan); opacity:0.4; margin-bottom:16px;
+  }
+  .step-title {
+    font-family:'Bebas Neue',sans-serif; font-size:24px;
+    letter-spacing:3px; color:var(--cyan); margin-bottom:10px;
+  }
+  .step-desc {
+    font-family:'Rajdhani',sans-serif; font-size:13px;
+    font-weight:300; line-height:1.6; color:var(--grey2);
+  }
+  .step-arrow {
+    position:absolute; right:-12px; top:50%; transform:translateY(-50%);
+    width:24px; height:24px; background:var(--bg3);
+    border:1px solid var(--cyan); border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    z-index:2; font-size:11px; color:var(--cyan); box-shadow:0 0 10px var(--cyan-glow);
+  }
+
+  .models { padding:100px 48px; max-width:1300px; margin:0 auto; }
+  .models-ticker {
+    margin-top:48px; overflow:hidden; border:1px solid var(--line);
+    padding:20px 0; position:relative; background:var(--bg2);
+  }
+  .models-ticker::before,.models-ticker::after {
+    content:''; position:absolute; top:0; bottom:0; width:120px; z-index:2;
+  }
+  .models-ticker::before{left:0;background:linear-gradient(90deg,var(--bg2),transparent);}
+  .models-ticker::after{right:0;background:linear-gradient(-90deg,var(--bg2),transparent);}
+  .ticker-track { display:flex; gap:64px; animation:ticker 22s linear infinite; white-space:nowrap; }
+  .ticker-item {
+    font-family:'Bebas Neue',sans-serif; font-size:18px;
+    letter-spacing:4px; color:var(--grey); transition:color 0.3s; flex-shrink:0;
+  }
+  .ticker-item:hover { color:var(--cyan); text-shadow:0 0 10px var(--cyan-glow); }
+  .ticker-item em { color:var(--cyan-dim); font-style:normal; margin-right:6px; font-size:12px; }
+
+  .cta-section { padding:160px 48px; text-align:center; position:relative; overflow:hidden; }
+  .cta-section::before {
+    content:'TAP'; position:absolute; font-family:'Bebas Neue',sans-serif;
+    font-size:40vw; color:rgba(0,245,255,0.025); top:50%; left:50%;
+    transform:translate(-50%,-50%); letter-spacing:20px; pointer-events:none; user-select:none;
+  }
+  .cta-title {
+    font-family:'Bebas Neue',sans-serif; font-size:clamp(48px,9vw,110px);
+    letter-spacing:6px; color:var(--white); line-height:1;
+    margin-bottom:16px; position:relative; z-index:1;
+  }
+  .cta-title span { color:var(--cyan); text-shadow:0 0 30px var(--cyan-glow); }
+  .cta-sub {
+    font-family:'Rajdhani',sans-serif; font-size:18px;
+    font-weight:300; letter-spacing:3px; color:var(--grey2);
+    margin-bottom:48px; position:relative; z-index:1; font-style:italic;
+  }
+
+  footer {
+    border-top:1px solid var(--line); padding:36px 48px;
+    display:flex; align-items:center; justify-content:space-between; background:var(--bg2);
+  }
+  .footer-logo {
+    font-family:'Bebas Neue',sans-serif; font-size:22px;
+    letter-spacing:8px; color:var(--cyan); opacity:0.6;
+  }
+  .footer-mid {
+    font-family:'Share Tech Mono',monospace; font-size:10px;
+    letter-spacing:4px; color:var(--grey2); text-transform:uppercase;
+  }
+  .footer-right {
+    font-family:'Share Tech Mono',monospace; font-size:10px;
+    letter-spacing:2px; color:var(--grey); opacity:0.5;
+  }
+
+  @media(max-width:900px){
+    nav{padding:16px 24px;} .nav-links{display:none;}
+    .hero,.features,.models,.cta-section{padding-left:24px;padding-right:24px;}
+    .features-grid{grid-template-columns:1fr;}
+    .pipeline{padding:80px 24px;}
+    .pipeline-steps{flex-direction:column;}
+    .pipeline-step+.pipeline-step{border-left:1px solid var(--line);border-top:none;}
+    .step-arrow{display:none;}
+    footer{flex-direction:column;gap:12px;text-align:center;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="matrix-canvas"></canvas>
+<div class="grid-bg"></div>
+
+<!-- INTRO -->
+<div id="intro">
+  <canvas id="intro-matrix"></canvas>
+  <div class="intro-vignette"></div>
+  <div id="boot-text"></div>
+
+  <!-- Phase 1: Horizontal full words -->
+  <div class="phase-words" id="phaseWords">
+    <div class="word-block" id="wb1"><span class="word-letter">T</span><span class="word-rest" id="wr1">ranslate</span></div>
+    <span class="word-sep" id="ws1">&nbsp;·&nbsp;</span>
+    <div class="word-block" id="wb2"><span class="word-letter">A</span><span class="word-rest" id="wr2">dapt</span></div>
+    <span class="word-sep" id="ws2">&nbsp;·&nbsp;</span>
+    <div class="word-block" id="wb3"><span class="word-letter">P</span><span class="word-rest" id="wr3">recision</span></div>
+  </div>
+
+  <!-- Phase 2: TAP snap -->
+  <div class="phase-tap" id="phaseTap"><div class="tap-word">TAP</div></div>
+
+  <div class="phase-tagline" id="phaseTagline">
+    <div class="tagline-sub">Translate · Adapt · Precision</div>
+    <div class="tagline-cta">Tap into your true potential.</div>
+    <div class="tap-blink">[ SYSTEM ONLINE ]</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <nav>
+    <div class="nav-logo" id="navLogo">
+      <span class="nav-logo-text" id="navLogoText"></span>
+      <span class="nav-logo-cursor" id="navLogoCursor"></span>
+    </div>
+    <div style="flex:1"></div>
+    <ul class="nav-links">
+      <li><a href="#features-section">Features</a></li>
+      <li><a href="#pipeline-section">Pipeline</a></li>
+      <li><a href="#models-section">Models</a></li>
+    </ul>
+    <a href="/chat" class="nav-btn" style="text-decoration:none;margin-left:40px"><span>Open Chat →</span></a>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-title">TAP</div>
+    <div class="hero-expand">
+      <span class="hero-word"><b>T</b>ranslate</span>
+      <span class="hero-divider">·</span>
+      <span class="hero-word"><b>A</b>dapt</span>
+      <span class="hero-divider">·</span>
+      <span class="hero-word"><b>P</b>recision</span>
+    </div>
+    <div class="hero-tagline">Tap into your true potential.</div>
+
+    <div class="hero-actions">
+      <a href="/chat" class="btn-primary" style="text-decoration:none">Launch TAP →</a>
+      <a href="#features-section" class="btn-ghost" style="text-decoration:none"><span>Learn More</span></a>
+    </div>
+
+    <div class="scroll-hint"><div class="scroll-line"></div>Scroll</div>
+  </section>
+
+  <div class="status-bar">
+    <div class="status-ticker" id="statusTicker">
+      <div class="status-item"><div class="status-dot"></div>Gemini · Online</div>
+      <div class="status-item"><div class="status-dot"></div>LLaMA · Online</div>
+      <div class="status-item"><div class="status-dot"></div>DeepSeek · Online</div>
+      <div class="status-item"><div class="status-dot"></div>Groq · Online</div>
+      <div class="status-item"><div class="status-dot"></div>Mistral · Online</div>
+      <div class="status-item"><div class="status-dot"></div>GPT-4 · Online</div>
+      <div class="status-item"><div class="status-dot"></div>Claude · Online</div>
+      <div class="status-item"><div class="status-dot"></div>Failover · Armed</div>
+      <div class="status-item"><div class="status-dot"></div>Gemini · Online</div>
+      <div class="status-item"><div class="status-dot"></div>LLaMA · Online</div>
+      <div class="status-item"><div class="status-dot"></div>DeepSeek · Online</div>
+      <div class="status-item"><div class="status-dot"></div>Groq · Online</div>
+      <div class="status-item"><div class="status-dot"></div>Mistral · Online</div>
+      <div class="status-item"><div class="status-dot"></div>GPT-4 · Online</div>
+      <div class="status-item"><div class="status-dot"></div>Claude · Online</div>
+      <div class="status-item"><div class="status-dot"></div>Failover · Armed</div>
+    </div>
+  </div>
+
+  <section class="features" id="features-section">
+    <div class="section-label">// Core Capabilities</div>
+    <div class="section-title">Engineered for <span>Precision</span></div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-num">01 // TRANSLATE</div>
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Intent Detection</div>
+        <div class="feature-desc">Reads your prompt and classifies whether it's code, research, creative, math, or explanation — before you even think to specify.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">02 // ADAPT</div>
+        <div class="feature-icon">🔀</div>
+        <div class="feature-title">Intelligent Routing</div>
+        <div class="feature-desc">Selects the optimal model from the routing table — Gemini, LLaMA, DeepSeek, and more — matched precisely to your intent.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">03 // PRECISION</div>
+        <div class="feature-icon">🎯</div>
+        <div class="feature-title">Prompt Re-Engineering</div>
+        <div class="feature-desc">Rewrites your prompt in the dialect the chosen model responds to best. The right words, for the right mind.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">04 //</div>
+        <div class="feature-icon">📡</div>
+        <div class="feature-title">Full Metadata</div>
+        <div class="feature-desc">Every response returns complete routing metadata — model chosen, rationale, latency, token usage, confidence score.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">05 //</div>
+        <div class="feature-icon">🔁</div>
+        <div class="feature-title">Auto Failover</div>
+        <div class="feature-desc">Rate-limited or down? TAP auto-routes to the next best model instantly. Zero downtime. No manual intervention.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-num">06 //</div>
+        <div class="feature-icon">🧬</div>
+        <div class="feature-title">Unified Interface</div>
+        <div class="feature-desc">One API. One interface. Every model. Stop context-switching between tools. TAP is your single entry point.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pipeline" id="pipeline-section">
+    <div class="pipeline-inner">
+      <div class="section-label">// The Pipeline</div>
+      <div class="section-title">One Prompt. <span>Five Steps.</span></div>
+      <div class="pipeline-steps">
+        <div class="pipeline-step">
+          <div class="step-num">STEP 01</div>
+          <div class="step-title">Detect</div>
+          <div class="step-desc">Intent read and classified from raw prompt.</div>
+          <div class="step-arrow">›</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">STEP 02</div>
+          <div class="step-title">Route</div>
+          <div class="step-desc">Best model selected from routing table.</div>
+          <div class="step-arrow">›</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">STEP 03</div>
+          <div class="step-title">Craft</div>
+          <div class="step-desc">Prompt re-engineered for chosen model.</div>
+          <div class="step-arrow">›</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">STEP 04</div>
+          <div class="step-title">Execute</div>
+          <div class="step-desc">API called. Response with full metadata returned.</div>
+          <div class="step-arrow">›</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">STEP 05</div>
+          <div class="step-title">Deliver</div>
+          <div class="step-desc">Answer returned — or failover triggered instantly.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="models" id="models-section">
+    <div class="section-label">// Model Coverage</div>
+    <div class="section-title">Every Mind. <span>One Interface.</span></div>
+    <div class="models-ticker">
+      <div class="ticker-track">
+        <span class="ticker-item"><em>▸</em>GEMINI</span>
+        <span class="ticker-item"><em>▸</em>LLAMA</span>
+        <span class="ticker-item"><em>▸</em>DEEPSEEK</span>
+        <span class="ticker-item"><em>▸</em>GROQ</span>
+        <span class="ticker-item"><em>▸</em>MISTRAL</span>
+        <span class="ticker-item"><em>▸</em>CLAUDE</span>
+        <span class="ticker-item"><em>▸</em>GPT-4</span>
+        <span class="ticker-item"><em>▸</em>COHERE</span>
+        <span class="ticker-item"><em>▸</em>GEMINI</span>
+        <span class="ticker-item"><em>▸</em>LLAMA</span>
+        <span class="ticker-item"><em>▸</em>DEEPSEEK</span>
+        <span class="ticker-item"><em>▸</em>GROQ</span>
+        <span class="ticker-item"><em>▸</em>MISTRAL</span>
+        <span class="ticker-item"><em>▸</em>CLAUDE</span>
+        <span class="ticker-item"><em>▸</em>GPT-4</span>
+        <span class="ticker-item"><em>▸</em>COHERE</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="cta-title">Ready to <span>TAP</span> in?</div>
+    <div class="cta-sub">Tap into your true potential. Starting now.</div>
+    <button class="btn-primary" onclick="window.location.href='/chat'">Launch TAP →</button>
+  </section>
+
+  <footer>
+    <div class="footer-logo">TAP</div>
+    <div class="footer-mid">Translate · Adapt · Precision</div>
+    <div class="footer-right">© 2025 TAP AI</div>
+  </footer>
+</div>
+
+<script>
+// ═══════════════════════════════════
+// AUDIO ENGINE — Premium synthesized sounds
+// ═══════════════════════════════════
+// NOTE: Browsers require a user gesture (click/keypress) before AudioContext
+// can produce sound. The boot prompt below captures that gesture, then
+// the full animation runs with audio immediately after.
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+// Crisp mechanical keyboard click — layered tone + noise transient
+function playKey(variant = 0, vol = 0.28) {
+  try {
+    const ctx = ensureAudio();
+    const sr = ctx.sampleRate;
+    const now = ctx.currentTime;
+
+    // ── Tonal click body (short sine burst) ──
+    const osc = ctx.createOscillator();
+    const oscGain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1400 + variant * 180, now);
+    osc.frequency.exponentialRampToValueAtTime(600 + variant * 80, now + 0.018);
+    oscGain.gain.setValueAtTime(vol * 0.6, now);
+    oscGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.022);
+    osc.connect(oscGain); oscGain.connect(ctx.destination);
+    osc.start(now); osc.stop(now + 0.025);
+
+    // ── Noise transient (the 'click' attack) ──
+    const bufLen = Math.floor(sr * 0.012);
+    const nBuf = ctx.createBuffer(1, bufLen, sr);
+    const nd = nBuf.getChannelData(0);
+    for (let i = 0; i < bufLen; i++) {
+      nd[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufLen * 0.3));
+    }
+    const nSrc = ctx.createBufferSource();
+    nSrc.buffer = nBuf;
+    const nFilt = ctx.createBiquadFilter();
+    nFilt.type = 'bandpass';
+    nFilt.frequency.value = 5000 + variant * 400;
+    nFilt.Q.value = 0.8;
+    const nGain = ctx.createGain();
+    nGain.gain.setValueAtTime(vol * 0.5, now);
+    nSrc.connect(nFilt); nFilt.connect(nGain); nGain.connect(ctx.destination);
+    nSrc.start(now);
+  } catch(e) {}
+}
+
+// Soft word-reveal chime — gentle sine ping with reverb tail
+function playEnterSound() {
+  try {
+    const ctx = ensureAudio();
+    const now = ctx.currentTime;
+
+    // Two-note soft chime
+    [880, 1108].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, now + i * 0.04);
+      gain.gain.linearRampToValueAtTime(0.18, now + i * 0.04 + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.04 + 0.3);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now + i * 0.04);
+      osc.stop(now + i * 0.04 + 0.35);
+    });
+  } catch(e) {}
+}
+
+// Deep cinematic TAP impact — sub thud + high shimmer
+function playThud() {
+  try {
+    const ctx = ensureAudio();
+    const sr = ctx.sampleRate;
+    const now = ctx.currentTime;
+
+    // ── Sub thud (pitched noise decay) ──
+    const bufLen = Math.floor(sr * 0.5);
+    const buf = ctx.createBuffer(1, bufLen, sr);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < bufLen; i++) {
+      const t = i / sr;
+      d[i] = (Math.random() * 2 - 1) * Math.exp(-t * 8);
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const filt = ctx.createBiquadFilter();
+    filt.type = 'lowpass';
+    filt.frequency.setValueAtTime(300, now);
+    filt.frequency.exponentialRampToValueAtTime(60, now + 0.3);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.9, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+    src.connect(filt); filt.connect(gain); gain.connect(ctx.destination);
+    src.start(now);
+
+    // ── High shimmer (bright sine ring) ──
+    const osc = ctx.createOscillator();
+    const oGain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(2200, now);
+    osc.frequency.exponentialRampToValueAtTime(800, now + 0.12);
+    oGain.gain.setValueAtTime(0.25, now);
+    oGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+    osc.connect(oGain); oGain.connect(ctx.destination);
+    osc.start(now); osc.stop(now + 0.28);
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════
+// MATRIX RAIN
+// ═══════════════════════════════════
+function initMatrix(id, color='#00F5FF', fs=13) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const chars = 'TAP01TRANSLATEADAPTPRECISION_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@!';
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  let drops = [];
+  function reset() { drops = Array(Math.floor(canvas.width/fs)).fill(0).map(()=>Math.random()*-80); }
+  reset(); window.addEventListener('resize', reset);
+  setInterval(()=>{
+    ctx.fillStyle = 'rgba(2,4,8,0.045)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = color;
+    ctx.font = `${fs}px Share Tech Mono,monospace`;
+    for(let i=0;i<drops.length;i++){
+      ctx.fillText(chars[Math.floor(Math.random()*chars.length)], i*fs, drops[i]*fs);
+      if(drops[i]*fs>canvas.height && Math.random()>0.975) drops[i]=0;
+      drops[i]++;
+    }
+  }, 45);
+}
+initMatrix('matrix-canvas','#00F5FF',13);
+initMatrix('intro-matrix','#00F5FF',14);
+
+// ═══════════════════════════════════
+// BOOT TEXT
+// ═══════════════════════════════════
+const bootLines = [
+  '> INITIALIZING TAP v2.4.1...',
+  '> LOADING MODEL ROUTING TABLE...',
+  '> CONNECTING TO AI ENDPOINTS...',
+  '> GEMINI [OK] · LLAMA [OK] · DEEPSEEK [OK] · GROQ [OK]',
+  '> CLAUDE [OK] · GPT-4 [OK] · MISTRAL [OK] · COHERE [OK]',
+  '> FAILOVER PROTOCOLS ARMED',
+  '> PROMPT ENGINEERING ENGINE READY',
+  '> INTENT DETECTION CALIBRATED',
+  '> ALL SYSTEMS NOMINAL. BOOTING...',
+];
+
+function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function typeBootText(){
+  const container = document.getElementById('boot-text');
+  for(const line of bootLines){
+    const span = document.createElement('span');
+    span.className='boot-line'; container.appendChild(span); span.style.opacity='1';
+    for(let i=0;i<line.length;i++){
+      span.textContent = line.slice(0,i+1);
+      if(line[i]!==' ') playKey(Math.random()*3, 0.18);
+      await delay(22+Math.random()*18);
+    }
+    playEnterSound();
+    await delay(70);
+  }
+}
+
+// ═══════════════════════════════════
+// INTRO ORCHESTRATOR
+// ═══════════════════════════════════
+const intro        = document.getElementById('intro');
+const mainEl       = document.getElementById('main');
+const phaseWords   = document.getElementById('phaseWords');
+const phaseTap     = document.getElementById('phaseTap');
+const phaseTagline = document.getElementById('phaseTagline');
+
+function set(el,props){ Object.assign(el.style,props); }
+
+async function exitIntro(){
+  set(intro,{transition:'opacity 0.5s ease',opacity:'0'});
+  await delay(500); set(intro,{display:'none'});
+  mainEl.classList.add('visible');
+  animateNavLogo();
+}
+
+// Typewriter for nav logo: _ → T_ → TA_ → TAP| (cursor keeps blinking)
+async function animateNavLogo() {
+  const text = document.getElementById('navLogoText');
+  if (!text) return;
+  text.textContent = '';
+  const letters = ['T','A','P'];
+  await delay(400);
+  for (let i = 0; i < letters.length; i++) {
+    if (i > 0) await delay(160);
+    text.textContent += letters[i];
+    playKey(i, 0.22);
+  }
+}
+
+async function runIntro(){
+  await delay(400);
+
+  // ── Phase 1: Words fade/rise in one by one ──
+  set(phaseWords, {opacity:'1'});
+  for(let i=1;i<=3;i++){
+    if(i>1) await delay(200);
+    const wb = document.getElementById('wb'+i);
+    wb.style.opacity='1'; wb.style.transform='translateY(0)';
+    playEnterSound();
+  }
+  await delay(1600);
+
+  // ── Phase 2: Smooth collapse ──
+  // Tails shrink away
+  ['wr1','wr2','wr3'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.style.maxWidth='0'; el.style.opacity='0'; el.style.marginLeft='0';
+  });
+  // Separators collapse
+  ['ws1','ws2'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.style.opacity='0'; el.style.margin='0'; el.style.fontSize='0';
+  });
+  await delay(700);
+
+  // ── Phase 3: Cross-dissolve to final TAP ──
+  // Fade out the letter row
+  set(phaseWords, {transition:'opacity 0.4s ease', opacity:'0'});
+  await delay(250);
+
+  // Fade in TAP at same size — no scale jump
+  set(phaseTap, {opacity:'0', transition:'none', transform:'translateY(0)'});
+  await delay(30);
+  set(phaseTap, {
+    opacity:'1',
+    transition:'opacity 0.5s ease',
+    transform:'translateY(0)'
+  });
+  playThud();
+  await delay(1000);
+
+  // ── Phase 4: Tagline ──
+  set(phaseTagline,{opacity:'1',transition:'opacity 0.9s ease'});
+  for(let i=0;i<5;i++){ await delay(80); playKey(i%3,0.2); }
+
+  await delay(2400);
+  exitIntro();
+}
+
+// ═══════════════════════════════════
+// BOOT PROMPT — unlocks audio via user gesture, then starts animation
+// ═══════════════════════════════════
+// Matrix rain starts immediately (no audio needed), but the full boot
+// sequence waits for one click/keypress so audio plays from the very start.
+
+// Inject the boot prompt into the intro overlay
+const bootPrompt = document.createElement('div');
+bootPrompt.id = 'boot-prompt';
+bootPrompt.style.cssText = 'position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;cursor:pointer;';
+bootPrompt.innerHTML = ''
+  + '<div style="font-family:\'Share Tech Mono\',monospace;font-size:clamp(10px,1.3vw,13px);color:var(--cyan-dim);letter-spacing:2px;text-align:center;line-height:2.2;margin-bottom:32px;opacity:0.5;">'
+  +   '> TAP SYSTEMS v2.4.1<br>'
+  +   '> ALL ENDPOINTS CONNECTED<br>'
+  +   '> AWAITING INPUT...'
+  + '</div>'
+  + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:clamp(80px,18vw,240px);color:var(--cyan);text-shadow:0 0 40px rgba(0,245,255,0.35),0 0 100px rgba(0,245,255,0.12);letter-spacing:clamp(8px,2vw,24px);line-height:1;">TAP</div>'
+  + '<div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:28px;">'
+  +   '<div style="width:1px;height:32px;background:linear-gradient(var(--cyan),transparent);opacity:0.3;"></div>'
+  +   '<div style="font-family:\'Share Tech Mono\',monospace;font-size:clamp(9px,1.1vw,11px);letter-spacing:5px;color:var(--cyan);text-transform:uppercase;animation:blinkTag 1.4s ease-in-out infinite;">[ click or press any key ]</div>'
+  + '</div>';
+intro.appendChild(bootPrompt);
+
+let introStarted = false;
+
+async function startWithAudio() {
+  if (introStarted) return;
+  introStarted = true;
+
+  // THIS is the user gesture — create and unlock AudioContext NOW
+  ensureAudio();
+
+  // Fade out boot prompt instantly
+  bootPrompt.style.transition = 'opacity 0.3s ease';
+  bootPrompt.style.opacity = '0';
+  await delay(300);
+  bootPrompt.remove();
+
+  // Audio is now unlocked — run the full intro with sound
+  runIntro();
+}
+
+// Listen for any user gesture
+document.addEventListener('click', startWithAudio, { once: true });
+document.addEventListener('keydown', startWithAudio, { once: true });
+document.addEventListener('touchstart', startWithAudio, { once: true });
+</script>
+</body>
+</html>
