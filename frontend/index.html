@@ -255,6 +255,44 @@ body{font-family:'Roboto',sans-serif;background:var(--bg);color:var(--text);heig
 .tut-btn.skip:hover{border-color:var(--text2);color:var(--text2);}
 .tut-btn.next{background:var(--accent);border:1px solid var(--accent);color:#fff;}
 .tut-btn.next:hover{background:#5a52e0;box-shadow:0 0 14px rgba(108,99,255,.3);}
+/* ═══ TERMS & CONDITIONS MODAL ═══ */
+.tos-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:250;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s ease}
+.tos-card{width:480px;max-width:94vw;max-height:90vh;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);box-shadow:0 24px 80px rgba(0,0,0,.7);animation:popIn .22s ease;overflow:hidden;display:flex;flex-direction:column}
+.tos-header{padding:24px 28px 12px;text-align:center;flex-shrink:0}
+.tos-header h2{font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px}
+.tos-header p{font-size:11px;color:var(--text3)}
+.tos-body{padding:0 28px 20px;overflow-y:auto;flex:1}
+.tos-summary{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:16px}
+.tos-summary b{color:var(--text);font-weight:600}
+.tos-bullet{display:flex;gap:8px;margin-bottom:8px;font-size:12px;color:var(--text2);line-height:1.6}
+.tos-bullet::before{content:'•';color:var(--accent);font-weight:700;flex-shrink:0;margin-top:1px}
+.tos-read-more{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--accent);cursor:pointer;background:none;border:1px solid rgba(108,99,255,.25);border-radius:6px;padding:5px 12px;font-family:inherit;transition:.15s;margin:8px 0 18px}
+.tos-read-more:hover{background:rgba(108,99,255,.08);border-color:var(--accent)}
+.tos-read-more svg{flex-shrink:0}
+.tos-checkbox-row{display:flex;align-items:flex-start;gap:10px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:16px;cursor:pointer;transition:border-color .15s}
+.tos-checkbox-row:hover{border-color:var(--accent)}
+.tos-checkbox-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);flex-shrink:0;cursor:pointer;margin-top:1px}
+.tos-checkbox-row label{font-size:12px;color:var(--text2);line-height:1.5;cursor:pointer;user-select:none}
+.tos-agree-btn{width:100%;padding:13px;border-radius:var(--r);border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s;letter-spacing:.3px}
+.tos-agree-btn:hover:not(:disabled){background:#5a52e0}
+.tos-agree-btn:disabled{opacity:.35;cursor:not-allowed}
+.tos-decline{text-align:center;margin-top:10px;padding-bottom:4px}
+.tos-decline a{font-size:11px;color:var(--text3);cursor:pointer;text-decoration:none;transition:color .13s}
+.tos-decline a:hover{color:var(--red)}
+
+/* Full terms popup */
+.tos-full-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:260;display:flex;align-items:center;justify-content:center;animation:fadeIn .15s ease}
+.tos-full-card{width:620px;max-width:94vw;max-height:85vh;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);box-shadow:0 24px 80px rgba(0,0,0,.7);display:flex;flex-direction:column;animation:popIn .2s ease}
+.tos-full-header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--border);flex-shrink:0}
+.tos-full-header h3{font-size:15px;font-weight:700;color:var(--text)}
+.tos-full-close{background:none;border:1px solid var(--border);border-radius:var(--r);color:var(--text3);font-size:14px;cursor:pointer;padding:4px 10px;transition:.15s}
+.tos-full-close:hover{color:var(--text);background:var(--surface2)}
+.tos-full-body{padding:20px 24px;overflow-y:auto;flex:1;font-size:13px;color:var(--text2);line-height:1.8}
+.tos-full-body h4{font-size:13px;font-weight:700;color:var(--text);margin:18px 0 6px}
+.tos-full-body h4:first-child{margin-top:0}
+.tos-full-body p{margin-bottom:10px}
+.tos-full-body ul{padding-left:18px;margin-bottom:10px}
+.tos-full-body ul li{margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -262,7 +300,7 @@ body{font-family:'Roboto',sans-serif;background:var(--bg);color:var(--text);heig
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <a href="/tap" class="logo-row" style="text-decoration:none;color:inherit"><div class="logo-mark">T</div><div><div class="logo-name"><span>TAP</span></div><div class="logo-sub">AI Router</div></div></a>
+    <a href="/" class="logo-row" style="text-decoration:none;color:inherit"><div class="logo-mark">T</div><div><div class="logo-name"><span>TAP</span></div><div class="logo-sub">AI Router</div></div></a>
     <button class="new-chat-btn" id="new-chat-btn"><span style="font-size:16px;line-height:1">+</span> New chat</button>
   </div>
   <div class="sec-label">Conversations</div>
@@ -278,7 +316,7 @@ body{font-family:'Roboto',sans-serif;background:var(--bg);color:var(--text);heig
   <div class="hdr">
     <div class="hdr-left">
       <button class="sidebar-toggle" id="sidebar-btn" title="Toggle sidebar">☰</button>
-      <a href="/tap" class="sidebar-toggle" title="Home" style="text-decoration:none">⌂</a>
+      <a href="/" class="sidebar-toggle" title="Home" style="text-decoration:none">⌂</a>
       <div class="tabs"><button class="tab on" onclick="showTab('chat',this)">Chat</button><button class="tab" onclick="showTab('lb',this)">Leaderboard</button></div>
     </div>
     <button class="model-pick-btn" id="model-pick-btn"><div class="pick-dot" id="pick-dot" style="background:var(--accent)"></div><span id="pick-label">Auto (leaderboard)</span><span class="pick-arrow">▼</span></button>
@@ -309,6 +347,10 @@ body{font-family:'Roboto',sans-serif;background:var(--bg);color:var(--text);heig
 <div id="profile-modal"></div>
 <!-- User Dropdown (hidden) -->
 <div id="user-dropdown" style="display:none"></div>
+<!-- T&C Modal -->
+<div id="tos-modal"></div>
+<!-- Full Terms Popup -->
+<div id="tos-full-modal"></div>
 
 <script>
 // ═══════════════════════════════════════════════════════════
@@ -385,8 +427,8 @@ async function doSignup(){
   if(res.error){errEl.textContent=res.error.message;return;}
   if(res.data.user&&!res.data.session){errEl.innerHTML='<span style="color:var(--green)">Check your email to confirm your account!</span>';return;}
   closeAuthModal();
-  // Profile is auto-created by DB trigger, now load it
-  await onAuthChange(res.data.session);
+  // Gate behind T&C acceptance
+  showTosGate(res.data.session);
 }
 async function doSignin(){
   var email=(document.getElementById('auth-email').value||'').trim();
@@ -398,7 +440,8 @@ async function doSignin(){
   document.getElementById('auth-go').disabled=false;
   if(res.error){errEl.textContent=res.error.message;return;}
   closeAuthModal();
-  await onAuthChange(res.data.session);
+  // Gate behind T&C acceptance
+  showTosGate(res.data.session);
 }
 async function doSignout(){
   await supa.auth.signOut();
@@ -409,6 +452,159 @@ async function doSignout(){
   activeChatId=chats[0].id;
   cv.innerHTML=renderWelcome();renderChatList();renderUserArea();renderLoginGate();renderKeysPanel();
 }
+
+// ═══════════════════════════════════════════════════════════
+// TERMS & CONDITIONS GATE
+// ═══════════════════════════════════════════════════════════
+function hasTosAccepted(userId){
+  try{return localStorage.getItem('tap_tos_v1_'+userId)==='1';}catch(e){return false;}
+}
+function markTosAccepted(userId){
+  try{localStorage.setItem('tap_tos_v1_'+userId,'1');}catch(e){}
+}
+
+function showTosGate(session){
+  if(!session||!session.user){onAuthChange(session);return;}
+  // Already accepted? Skip straight through
+  if(hasTosAccepted(session.user.id)){onAuthChange(session);return;}
+  // Show the T&C modal — user MUST accept before using the app
+  var el=document.getElementById('tos-modal');
+  el.innerHTML=
+    '<div class="tos-overlay">'+
+      '<div class="tos-card">'+
+        '<div class="tos-header">'+
+          '<h2>Before you continue</h2>'+
+          '<p>Please review and accept our API Key Terms</p>'+
+        '</div>'+
+        '<div class="tos-body">'+
+          '<div class="tos-summary">By connecting an API key to <b>Tap.ai</b>, you authorize Tap.ai to use that key to send requests you initiate or approve to the AI provider(s) you connect.</div>'+
+          '<div class="tos-summary" style="margin-bottom:4px"><b>You understand that:</b></div>'+
+          '<div class="tos-bullet">Your API key remains tied to your provider account</div>'+
+          '<div class="tos-bullet">Any usage charges, quota consumption, rate limits, suspensions, or other account effects are governed by your provider\'s terms and billing</div>'+
+          '<div class="tos-bullet">Tap.ai may reformat, optimize, route, or split your prompts across the models/providers you enable in order to provide the service</div>'+
+          '<div class="tos-bullet">Prompts, outputs, and related metadata may be processed and stored as described in our Privacy Policy and these Terms</div>'+
+          '<div class="tos-bullet">You should only connect API keys you are authorized to use, and you may disconnect them at any time</div>'+
+          '<button class="tos-read-more" onclick="showFullTerms()">'+
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>'+
+            'Read Full API Key Terms'+
+          '</button>'+
+          '<div class="tos-checkbox-row" onclick="var cb=this.querySelector(\'input\');cb.checked=!cb.checked;toggleTosAgree()">'+
+            '<input type="checkbox" id="tos-check" onclick="event.stopPropagation();toggleTosAgree()"/>'+
+            '<label for="tos-check" onclick="event.stopPropagation()">I confirm that I am authorized to use the API key(s) I connect, and I agree to the <b style="color:var(--text)">API Key Terms</b> and <b style="color:var(--text)">Privacy Policy</b>.</label>'+
+          '</div>'+
+          '<button class="tos-agree-btn" id="tos-agree-btn" disabled onclick="acceptTos()">I Agree</button>'+
+          '<div class="tos-decline"><a onclick="declineTos()">Decline and sign out</a></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  // Store the pending session so we can proceed after acceptance
+  window._pendingTosSession=session;
+}
+
+function toggleTosAgree(){
+  var cb=document.getElementById('tos-check');
+  var btn=document.getElementById('tos-agree-btn');
+  if(cb&&btn){btn.disabled=!cb.checked;}
+}
+
+async function acceptTos(){
+  var session=window._pendingTosSession;
+  if(!session||!session.user)return;
+  markTosAccepted(session.user.id);
+  document.getElementById('tos-modal').innerHTML='';
+  window._pendingTosSession=null;
+  await onAuthChange(session);
+}
+
+async function declineTos(){
+  document.getElementById('tos-modal').innerHTML='';
+  window._pendingTosSession=null;
+  await supa.auth.signOut();
+  currentUser=null;userProfile=null;
+  renderUserArea();renderLoginGate();
+}
+
+function showFullTerms(){
+  var el=document.getElementById('tos-full-modal');
+  el.innerHTML=
+    '<div class="tos-full-overlay" onclick="if(event.target===this)closeFullTerms()">'+
+      '<div class="tos-full-card" onclick="event.stopPropagation()">'+
+        '<div class="tos-full-header">'+
+          '<h3>API Key Terms — Tap.ai</h3>'+
+          '<button class="tos-full-close" onclick="closeFullTerms()">✕ Close</button>'+
+        '</div>'+
+        '<div class="tos-full-body">'+
+          '<p>These API Key Terms govern your use of the "bring your own key" functionality in Tap.ai, operated by Tap.ai. By connecting, pasting, saving, or using an API key with the Service, you agree to these terms.</p>'+
+
+          '<h4>1. Your API Keys</h4>'+
+          '<p>You may choose to connect your own API key(s) for supported third-party AI providers ("Provider Keys"). Provider Keys are and remain associated with your own account(s) with the relevant third-party provider(s). We do not transfer ownership of any Provider Key or provider account to ourselves.</p>'+
+
+          '<h4>2. Authorization</h4>'+
+          '<p>By connecting a Provider Key, you represent and warrant that:</p>'+
+          '<ul>'+
+            '<li>You are authorized to use that key and the related provider account</li>'+
+            '<li>You have the right to permit us to use that key on your behalf for the purposes described in these Terms</li>'+
+            '<li>Your use of the Service and the connected Provider Key does not violate any agreement, workplace policy, or law applicable to you</li>'+
+            '<li>You will not connect keys that belong to another person or organization unless you are expressly authorized to do so</li>'+
+          '</ul>'+
+
+          '<h4>3. How We May Use Your Key</h4>'+
+          '<p>You authorize us to use your connected Provider Key solely to operate the Service features you enable or request, including to:</p>'+
+          '<ul>'+
+            '<li>Authenticate requests to supported third-party AI providers</li>'+
+            '<li>Send prompts, files, instructions, prior context, and related request data needed to complete a task you initiate or approve</li>'+
+            '<li>Enhance, rewrite, optimize, restructure, or otherwise transform your prompts before sending them to a selected model</li>'+
+            '<li>Route your request among the models or providers you have enabled, based on your settings, selected preferences, or automated model-selection logic</li>'+
+            '<li>Receive and display model outputs to you</li>'+
+            '<li>Log minimal technical and usage metadata needed to provide, secure, debug, and improve the Service</li>'+
+          '</ul>'+
+          '<p>We will not use your Provider Key for unrelated purposes.</p>'+
+
+          '<h4>4. Provider Terms, Billing, and Account Effects</h4>'+
+          '<p>Your use of third-party AI providers through the Service remains subject to the terms, policies, pricing, rate limits, and billing rules of those providers. You are solely responsible for:</p>'+
+          '<ul>'+
+            '<li>All usage charges, token consumption, subscription effects, quota usage, and overages incurred through requests made with your Provider Key</li>'+
+            '<li>Complying with the provider\'s acceptable use policies, safety policies, and other contractual terms</li>'+
+            '<li>Monitoring your own provider account, usage, invoices, and limits</li>'+
+          '</ul>'+
+          '<p>We are not responsible for provider-side outages, suspensions, pricing changes, account restrictions, or service denials.</p>'+
+
+          '<h4>5. Prompt Routing and Optimization</h4>'+
+          '<p>The Service may automatically classify the intent of your prompt, choose or recommend a model/provider from among those you enable, rewrite or repackage your prompt for performance, formatting, or compatibility, and include prior messages, project context, or output format instructions to improve results.</p>'+
+          '<p>You acknowledge that prompt enhancement and routing may change the wording, structure, or ordering of your original input while preserving the intended task as reasonably possible.</p>'+
+
+          '<h4>6. Data You Send Through the Service</h4>'+
+          '<p>When you use the Service with a Provider Key, we may process: prompts and follow-up messages, uploaded files and attachments, generated outputs, project or conversation context, selected provider/model settings, and technical metadata such as timestamps, error logs, token counts, and provider response identifiers.</p>'+
+          '<p>You should not submit data that you are not permitted to share. If your use case involves confidential, regulated, or sensitive information, you are responsible for ensuring that the selected provider, key, settings, and account terms are appropriate for that use.</p>'+
+
+          '<h4>7. Storage and Security</h4>'+
+          '<p>We store connected Provider Keys encrypted at rest and transmit them over TLS. Access is limited to the systems and personnel who need it to operate the Service. While we take reasonable measures to protect Provider Keys, no method of storage or transmission is completely secure, and we cannot guarantee absolute security.</p>'+
+
+          '<h4>8. Your Security Responsibilities</h4>'+
+          '<p>You are responsible for keeping your Provider Keys secure. You agree to: only submit keys through the official connection flow provided by the Service; not share keys with unauthorized persons; rotate or revoke a key if you suspect it has been exposed; use provider-side restrictions where available; and promptly disconnect any key you no longer want the Service to use.</p>'+
+
+          '<h4>9. Revocation and Deletion</h4>'+
+          '<p>You may disconnect a Provider Key at any time through Settings. After disconnection, we will stop using that key for new requests.</p>'+
+
+          '<h4>10. Acceptable Use</h4>'+
+          '<p>You may not use the Service or any connected Provider Key to: violate law or third-party rights; access or attempt to access accounts or resources you are not authorized to use; interfere with the security or operation of the Service or any provider; submit malware, credential-stealing content, or abusive automated traffic; or use another person\'s or organization\'s key without authorization.</p>'+
+
+          '<h4>11. No Warranty</h4>'+
+          '<p>The Service helps route requests, enhance prompts, and connect to third-party AI models, but it does not guarantee that outputs will be accurate, complete, lawful, unbiased, available, or fit for any particular purpose. You are responsible for reviewing and validating outputs before relying on them.</p>'+
+
+          '<h4>12. Limitation of Liability</h4>'+
+          '<p>To the maximum extent permitted by law, Tap.ai will not be liable for any indirect, incidental, special, consequential, exemplary, or punitive damages, or for any loss of profits, revenue, goodwill, data, business opportunity, or provider credits arising out of or related to your use of connected Provider Keys or third-party AI services.</p>'+
+
+          '<h4>13. Changes</h4>'+
+          '<p>We may update these API Key Terms from time to time. If we make material changes, we will provide notice by updating the effective date, posting the revised terms, or using another reasonable method. Your continued use of connected Provider Keys after the updated terms take effect constitutes acceptance of the revised terms.</p>'+
+
+          '<h4>14. Contact</h4>'+
+          '<p>If you have questions about these API Key Terms, contact us at Tap.ai.</p>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+}
+function closeFullTerms(){document.getElementById('tos-full-modal').innerHTML='';}
 
 // ═══════════════════════════════════════════════════════════
 // PROFILE — reads/writes from public.profiles table
@@ -522,13 +718,13 @@ async function loadChatsFromDB(){
     chats.unshift({id:newId,title:'New conversation',date:todayStr(),html:''});
     activeChatId=newId;
     cv.innerHTML=renderWelcome();
-    // Don't save empty chat to DB — it will be saved when user sends first message
+    saveChatToDB(chats[0]);
   }else{
     var newId=uid();
     chats=[{id:newId,title:'New conversation',date:todayStr(),html:''}];
     activeChatId=newId;
     cv.innerHTML=renderWelcome();
-    // Don't save empty chat to DB
+    await saveChatToDB(chats[0]);
   }
   renderChatList();
 }
@@ -574,14 +770,17 @@ async function onAuthChange(session){
 supa.auth.onAuthStateChange(function(event,session){
   // INITIAL_SESSION is handled by the getSession() call below — skip to avoid double load
   if(event==='INITIAL_SESSION')return;
-  onAuthChange(session);
+  // Gate behind T&C for sign-in events; sign-out events go through directly
+  if(session&&session.user){showTosGate(session);}
+  else{onAuthChange(session);}
 });
 
 // Check existing session on load
 (async function(){
   var res=await supa.auth.getSession();
   if(res.data.session){
-    await onAuthChange(res.data.session);
+    // Gate behind T&C acceptance
+    showTosGate(res.data.session);
   }else{
     renderUserArea();renderLoginGate();
   }
@@ -653,7 +852,7 @@ function newChat(){
   saveCurrentChatHtml();var id=uid();
   chats.unshift({id:id,title:"New conversation",date:todayStr(),html:""});
   activeChatId=id;cv.innerHTML=renderWelcome();
-  // Don't save empty chat to DB — it will be saved when user sends first message
+  if(currentUser)saveChatToDB(chats[0]);
   renderChatList();pi.focus();
 }
 function switchChat(id){
@@ -666,7 +865,7 @@ function switchChat(id){
 }
 function delChat(id){
   chats=chats.filter(function(c){return c.id!==id;});
-  if(!chats.length){var nid=uid();chats=[{id:nid,title:"New conversation",date:todayStr(),html:""}];}
+  if(!chats.length){var nid=uid();chats=[{id:nid,title:"New conversation",date:todayStr(),html:""}];if(currentUser)saveChatToDB(chats[0]);}
   if(activeChatId===id){activeChatId=chats[0].id;cv.innerHTML=getActiveChat().html||renderWelcome();}
   deleteChatFromDB(id);renderChatList();
 }
@@ -678,8 +877,7 @@ function saveCurrentChatHtml(){
   var wel=clone.querySelector('#wel');
   if(wel)wel.remove();
   c.html=clone.innerHTML;
-  // Only save to DB if the chat has actual message content (not empty)
-  if(currentUser&&c.html&&c.html.trim())saveChatToDB(c);
+  if(currentUser)saveChatToDB(c);
 }
 function renderWelcome(){
   return '<div class="welcome" id="wel"><h2>You had the right question all along, we just tapped into it.</h2><p>You bring the thought. TAP does the rest — ranking seven models, selecting the sharpest one, refining your prompt, and delivering an answer worth having.</p><div class="exs"><button class="ex" onclick="useEx(this)">Write a Python script to parse CSV and find duplicates</button><button class="ex" onclick="useEx(this)">Explain how TCP/IP works in simple terms</button><button class="ex" onclick="useEx(this)">Compare React vs Vue for a new project</button><button class="ex" onclick="useEx(this)">Solve: integral of x²·sin(x) dx</button></div></div>';

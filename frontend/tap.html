@@ -339,28 +339,29 @@
   .section-title span { color:var(--cyan); }
   .features-grid {
     display:grid; grid-template-columns:repeat(3,1fr);
-    gap:24px;
+    gap:1px; background:var(--line); border:1px solid var(--line);
   }
   .feature-card {
-    background:var(--bg2); border:1px solid var(--line);
-    border-radius:16px; position:relative;
-    transition:all 0.35s ease; overflow:hidden;
+    background:var(--bg2); padding:44px 36px; position:relative;
+    transition:background 0.3s; overflow:hidden;
   }
-  .feature-card:hover { border-color:rgba(108,99,255,0.35); background:var(--bg3); transform:translateY(-4px); }
-  .feature-preview {
-    width:100%; aspect-ratio:16/10; background:var(--bg);
-    border-bottom:1px solid var(--line);
-    display:flex; align-items:center; justify-content:center;
-    overflow:hidden; position:relative; padding:24px;
+  .feature-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,var(--cyan),var(--orange));
+    transform:scaleX(0); transform-origin:left; transition:transform 0.4s ease;
   }
-  .feature-preview svg { width:100%; height:100%; }
-  .feature-body { padding:28px 28px 32px; }
+  .feature-card:hover::before { transform:scaleX(1); }
+  .feature-card:hover { background:var(--bg3); }
+  .feature-num {
+    font-family:'Roboto',sans-serif; font-size:11px;
+    letter-spacing:3px; color:var(--cyan); opacity:0.4; margin-bottom:20px;
+  }
   .feature-title {
-    font-family:'Roboto',sans-serif;font-weight:900; font-size:22px;
-    letter-spacing:0.5px; color:var(--white); margin-bottom:12px; line-height:1.3;
+    font-family:'Roboto',sans-serif;font-weight:900; font-size:28px;
+    letter-spacing:2px; color:var(--white); margin-bottom:14px;
   }
   .feature-desc {
-    font-family:'Roboto',sans-serif; font-size:14px;
+    font-family:'Roboto',sans-serif; font-size:15px;
     font-weight:400; line-height:1.7; color:var(--grey2);
   }
 
@@ -470,16 +471,45 @@
     .team-grid{grid-template-columns:1fr;}
   }
 
-  /* ═══ FOOTER REMOVED ═══ */
+  /* ═══ FOOTER ═══ */
+  footer {
+    border-top:1px solid var(--line); padding:32px 48px 24px;
+    background:var(--bg2); text-align:center;
+  }
+  .footer-top {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid var(--line);
+  }
+  .footer-logo {
+    font-family:'Roboto',sans-serif;font-weight:900; font-size:22px;
+    letter-spacing:8px; color:var(--cyan); opacity:0.6;
+  }
+  .footer-mid {
+    font-family:'Roboto',sans-serif; font-size:12px;
+    letter-spacing:4px; color:var(--grey2); text-transform:uppercase;
+  }
+  .footer-links {
+    display:flex; gap:24px; list-style:none;
+  }
+  .footer-links a {
+    font-family:'Roboto',sans-serif; font-size:12px; color:var(--grey2);
+    text-decoration:none; letter-spacing:1px; transition:color 0.2s;
+  }
+  .footer-links a:hover { color:var(--cyan); }
+  .footer-copyright {
+    font-family:'Roboto',sans-serif; font-size:11px;
+    color:var(--grey); letter-spacing:1px; opacity:0.6;
+  }
 
   @media(max-width:900px){
     nav{padding:16px 24px;} .nav-links{display:none;}
     .hero,.features,.models,.cta-section{padding-left:24px;padding-right:24px;}
-    .features-grid{grid-template-columns:1fr;gap:16px;}
+    .features-grid{grid-template-columns:1fr;}
     .pipeline{padding:80px 24px;}
     .pipeline-steps{flex-direction:column;}
     .pipeline-step+.pipeline-step{border-left:1px solid var(--line);border-top:none;}
     .step-arrow{display:none;}
+    footer{flex-direction:column;gap:12px;text-align:center;}
   }
 
   /* Auth modal for landing page */
@@ -507,6 +537,43 @@
   .lp-auth-close{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--grey2);font-size:16px;cursor:pointer;padding:4px 8px;transition:.15s}.lp-auth-close:hover{color:var(--white)}
   .lp-user-btn{font-family:'Roboto',sans-serif;font-size:13px;letter-spacing:2px;padding:8px 16px;border:1px solid var(--cyan);color:var(--cyan);background:transparent;cursor:pointer;transition:all .2s;text-transform:uppercase;display:flex;align-items:center;gap:6px;margin-left:20px}
   .lp-user-btn:hover{background:rgba(108,99,255,.08);box-shadow:0 0 15px var(--cyan-glow)}
+
+  /* ═══ TERMS & CONDITIONS ═══ */
+  .tos-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:10000;display:flex;align-items:center;justify-content:center;animation:fadeInAuth .2s ease}
+  .tos-card{width:480px;max-width:94vw;max-height:90vh;background:#0A1520;border:1px solid var(--line);border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.8);animation:popInAuth .22s ease;overflow:hidden;display:flex;flex-direction:column}
+  .tos-header{padding:24px 28px 12px;text-align:center;flex-shrink:0}
+  .tos-header h2{font-family:'Roboto',sans-serif;font-size:18px;font-weight:700;color:var(--white);margin-bottom:4px}
+  .tos-header p{font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--grey2)}
+  .tos-body{padding:0 28px 20px;overflow-y:auto;flex:1}
+  .tos-summary{font-family:'Roboto',sans-serif;font-size:12px;color:var(--grey2);line-height:1.7;margin-bottom:16px}
+  .tos-summary b{color:var(--white);font-weight:600}
+  .tos-bullet{display:flex;gap:8px;margin-bottom:8px;font-family:'Roboto',sans-serif;font-size:12px;color:var(--grey2);line-height:1.6}
+  .tos-bullet::before{content:'•';color:var(--cyan);font-weight:700;flex-shrink:0;margin-top:1px}
+  .tos-read-more{display:inline-flex;align-items:center;gap:5px;font-family:'Roboto',sans-serif;font-size:11px;color:var(--cyan);cursor:pointer;background:none;border:1px solid rgba(108,99,255,.25);border-radius:6px;padding:5px 12px;transition:.15s;margin:8px 0 18px;letter-spacing:1px}
+  .tos-read-more:hover{background:rgba(108,99,255,.08);border-color:var(--cyan)}
+  .tos-read-more svg{flex-shrink:0}
+  .tos-checkbox-row{display:flex;align-items:flex-start;gap:10px;padding:14px 16px;background:rgba(108,99,255,.04);border:1px solid var(--line);border-radius:8px;margin-bottom:16px;cursor:pointer;transition:border-color .15s}
+  .tos-checkbox-row:hover{border-color:rgba(108,99,255,.4)}
+  .tos-checkbox-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--cyan);flex-shrink:0;cursor:pointer;margin-top:1px}
+  .tos-checkbox-row label{font-family:'Roboto',sans-serif;font-size:12px;color:var(--grey2);line-height:1.5;cursor:pointer;user-select:none}
+  .tos-agree-btn{width:100%;padding:13px;border:none;background:var(--cyan);color:var(--bg);font-family:'Roboto',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;letter-spacing:2px;text-transform:uppercase}
+  .tos-agree-btn:hover:not(:disabled){box-shadow:0 0 30px var(--cyan-glow)}
+  .tos-agree-btn:disabled{opacity:.35;cursor:not-allowed}
+  .tos-decline{text-align:center;margin-top:10px;padding-bottom:4px}
+  .tos-decline a{font-family:'Roboto',sans-serif;font-size:11px;color:var(--grey);cursor:pointer;text-decoration:none;transition:color .13s;letter-spacing:1px}
+  .tos-decline a:hover{color:#ff6b6b}
+  .tos-full-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10001;display:flex;align-items:center;justify-content:center;animation:fadeInAuth .15s ease}
+  .tos-full-card{width:620px;max-width:94vw;max-height:85vh;background:#0A1520;border:1px solid var(--line);border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.8);display:flex;flex-direction:column;animation:popInAuth .2s ease}
+  .tos-full-header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line);flex-shrink:0}
+  .tos-full-header h3{font-family:'Roboto',sans-serif;font-size:15px;font-weight:700;color:var(--white)}
+  .tos-full-close{background:none;border:1px solid var(--line);border-radius:6px;color:var(--grey2);font-family:'Roboto',sans-serif;font-size:12px;cursor:pointer;padding:6px 14px;transition:.15s;letter-spacing:1px}
+  .tos-full-close:hover{color:var(--white);border-color:var(--cyan)}
+  .tos-full-body{padding:20px 24px;overflow-y:auto;flex:1;font-family:'Roboto',sans-serif;font-size:13px;color:var(--grey2);line-height:1.8}
+  .tos-full-body h4{font-size:13px;font-weight:700;color:var(--white);margin:18px 0 6px}
+  .tos-full-body h4:first-child{margin-top:0}
+  .tos-full-body p{margin-bottom:10px}
+  .tos-full-body ul{padding-left:18px;margin-bottom:10px}
+  .tos-full-body ul li{margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -614,162 +681,34 @@
     <div class="section-title">Engineered for <span>Precision</span></div>
     <div class="features-grid">
       <div class="feature-card">
-        <div class="feature-preview">
-          <svg viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="40" y="30" width="240" height="140" rx="10" fill="#1a1a2e" stroke="#2a2a3e" stroke-width="1"/>
-            <rect x="56" y="50" width="80" height="10" rx="3" fill="#6c63ff" opacity="0.6"/>
-            <rect x="56" y="68" width="55" height="6" rx="2" fill="#333" />
-            <rect x="56" y="82" width="90" height="6" rx="2" fill="#333" />
-            <rect x="56" y="96" width="70" height="6" rx="2" fill="#333" />
-            <circle cx="230" cy="75" r="28" fill="none" stroke="#6c63ff" stroke-width="2" opacity="0.4"/>
-            <path d="M220 75 L228 83 L242 67" stroke="#4ecdc4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <rect x="56" y="118" width="45" height="22" rx="6" fill="#6c63ff" opacity="0.15" stroke="#6c63ff" stroke-width="1"/>
-            <text x="78" y="133" text-anchor="middle" fill="#6c63ff" font-size="9" font-family="Roboto">CODE</text>
-            <rect x="110" y="118" width="60" height="22" rx="6" fill="transparent" stroke="#333" stroke-width="1"/>
-            <text x="140" y="133" text-anchor="middle" fill="#555" font-size="9" font-family="Roboto">RESEARCH</text>
-            <rect x="180" y="118" width="55" height="22" rx="6" fill="transparent" stroke="#333" stroke-width="1"/>
-            <text x="207" y="133" text-anchor="middle" fill="#555" font-size="9" font-family="Roboto">CREATIVE</text>
-          </svg>
-        </div>
-        <div class="feature-body">
-          <div class="feature-title">Intent Detection</div>
-          <div class="feature-desc">Reads your prompt and classifies whether it's code, research, creative, math, or explanation — before you even think to specify.</div>
-        </div>
+        <div class="feature-num">01 // TRANSLATE</div>
+        <div class="feature-title">Intent Detection</div>
+        <div class="feature-desc">Reads your prompt and classifies whether it's code, research, creative, math, or explanation — before you even think to specify.</div>
       </div>
       <div class="feature-card">
-        <div class="feature-preview">
-          <svg viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="40" y="30" width="240" height="140" rx="10" fill="#1a1a2e" stroke="#2a2a3e" stroke-width="1"/>
-            <rect x="56" y="48" width="100" height="8" rx="3" fill="#6c63ff" opacity="0.5"/>
-            <rect x="60" y="66" width="8" height="8" rx="4" fill="#4285F4"/>
-            <text x="74" y="73" fill="#888" font-size="9" font-family="Roboto">Gemini 2.5 Pro</text>
-            <rect x="195" y="66" width="50" height="6" rx="3" fill="#4285F4" opacity="0.3"/>
-            <rect x="195" y="66" width="44" height="6" rx="3" fill="#4285F4"/>
-            <text x="255" y="72" fill="#4ecdc4" font-size="10" font-family="Roboto" font-weight="bold">✓</text>
-            <rect x="60" y="84" width="8" height="8" rx="4" fill="#0668E1"/>
-            <text x="74" y="91" fill="#888" font-size="9" font-family="Roboto">LLaMA 3.3 70B</text>
-            <rect x="195" y="84" width="50" height="6" rx="3" fill="#0668E1" opacity="0.3"/>
-            <rect x="195" y="84" width="38" height="6" rx="3" fill="#0668E1"/>
-            <rect x="60" y="102" width="8" height="8" rx="4" fill="#536DFE"/>
-            <text x="74" y="109" fill="#888" font-size="9" font-family="Roboto">DeepSeek R1</text>
-            <rect x="195" y="102" width="50" height="6" rx="3" fill="#536DFE" opacity="0.3"/>
-            <rect x="195" y="102" width="32" height="6" rx="3" fill="#536DFE"/>
-            <rect x="60" y="120" width="8" height="8" rx="4" fill="#D97757"/>
-            <text x="74" y="127" fill="#555" font-size="9" font-family="Roboto">Claude Sonnet</text>
-            <rect x="195" y="120" width="50" height="6" rx="3" fill="#D97757" opacity="0.3"/>
-            <rect x="195" y="120" width="28" height="6" rx="3" fill="#D97757"/>
-            <rect x="60" y="138" width="8" height="8" rx="4" fill="#FF7000"/>
-            <text x="74" y="145" fill="#555" font-size="9" font-family="Roboto">Mistral 8x7B</text>
-            <rect x="195" y="138" width="50" height="6" rx="3" fill="#FF7000" opacity="0.3"/>
-            <rect x="195" y="138" width="22" height="6" rx="3" fill="#FF7000"/>
-          </svg>
-        </div>
-        <div class="feature-body">
-          <div class="feature-title">Intelligent Routing</div>
-          <div class="feature-desc">Selects the optimal model from the routing table — Gemini, LLaMA, DeepSeek, and more — matched precisely to your intent.</div>
-        </div>
+        <div class="feature-num">02 // ADAPT</div>
+        <div class="feature-title">Intelligent Routing</div>
+        <div class="feature-desc">Selects the optimal model from the routing table — Gemini, LLaMA, DeepSeek, and more — matched precisely to your intent.</div>
       </div>
       <div class="feature-card">
-        <div class="feature-preview">
-          <svg viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="40" y="30" width="240" height="140" rx="10" fill="#1a1a2e" stroke="#2a2a3e" stroke-width="1"/>
-            <rect x="56" y="48" width="60" height="7" rx="2" fill="#555"/>
-            <rect x="56" y="60" width="140" height="6" rx="2" fill="#333"/>
-            <rect x="56" y="72" width="100" height="6" rx="2" fill="#333"/>
-            <path d="M160 88 L160 100" stroke="#6c63ff" stroke-width="1.5" stroke-dasharray="3 2"/>
-            <polygon points="156,100 160,107 164,100" fill="#6c63ff" opacity="0.6"/>
-            <rect x="56" y="112" width="60" height="7" rx="2" fill="#4ecdc4" opacity="0.7"/>
-            <rect x="56" y="124" width="180" height="6" rx="2" fill="#444"/>
-            <rect x="56" y="136" width="155" height="6" rx="2" fill="#444"/>
-            <rect x="56" y="148" width="120" height="6" rx="2" fill="#444"/>
-            <rect x="244" y="112" width="24" height="24" rx="6" fill="#6c63ff" opacity="0.15" stroke="#6c63ff" stroke-width="1"/>
-            <text x="256" y="128" text-anchor="middle" fill="#6c63ff" font-size="12" font-family="Roboto">✦</text>
-          </svg>
-        </div>
-        <div class="feature-body">
-          <div class="feature-title">Prompt Re-Engineering</div>
-          <div class="feature-desc">Rewrites your prompt in the dialect the chosen model responds to best. The right words, for the right mind.</div>
-        </div>
+        <div class="feature-num">03 // PRECISION</div>
+        <div class="feature-title">Prompt Re-Engineering</div>
+        <div class="feature-desc">Rewrites your prompt in the dialect the chosen model responds to best. The right words, for the right mind.</div>
       </div>
       <div class="feature-card">
-        <div class="feature-preview">
-          <svg viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="40" y="30" width="240" height="140" rx="10" fill="#1a1a2e" stroke="#2a2a3e" stroke-width="1"/>
-            <rect x="56" y="48" width="75" height="7" rx="2" fill="#6c63ff" opacity="0.5"/>
-            <rect x="60" y="66" width="60" height="6" rx="2" fill="#555"/>
-            <text x="130" y="71" fill="#4ecdc4" font-size="9" font-family="Share Tech Mono">gemini-2.5-pro</text>
-            <rect x="60" y="82" width="55" height="6" rx="2" fill="#555"/>
-            <text x="125" y="87" fill="#888" font-size="9" font-family="Share Tech Mono">342ms</text>
-            <rect x="60" y="98" width="45" height="6" rx="2" fill="#555"/>
-            <text x="115" y="103" fill="#888" font-size="9" font-family="Share Tech Mono">1,247 tokens</text>
-            <rect x="60" y="114" width="50" height="6" rx="2" fill="#555"/>
-            <text x="120" y="119" fill="#888" font-size="9" font-family="Share Tech Mono">0.94</text>
-            <rect x="60" y="130" width="55" height="6" rx="2" fill="#555"/>
-            <text x="125" y="135" fill="#888" font-size="9" font-family="Share Tech Mono">code_gen</text>
-            <rect x="200" y="60" width="64" height="90" rx="8" fill="#161622" stroke="#2a2a3e" stroke-width="1"/>
-            <circle cx="232" cy="90" r="18" fill="none" stroke="#6c63ff" stroke-width="2" opacity="0.3"/>
-            <path d="M232 78 L232 90 L242 95" stroke="#4ecdc4" stroke-width="1.5" stroke-linecap="round"/>
-            <text x="232" y="122" text-anchor="middle" fill="#6c63ff" font-size="8" font-family="Roboto" letter-spacing="1">LATENCY</text>
-          </svg>
-        </div>
-        <div class="feature-body">
-          <div class="feature-title">Full Metadata</div>
-          <div class="feature-desc">Every response returns complete routing metadata — model chosen, rationale, latency, token usage, confidence score.</div>
-        </div>
+        <div class="feature-num">04 //</div>
+        <div class="feature-title">Full Metadata</div>
+        <div class="feature-desc">Every response returns complete routing metadata — model chosen, rationale, latency, token usage, confidence score.</div>
       </div>
       <div class="feature-card">
-        <div class="feature-preview">
-          <svg viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="40" y="30" width="240" height="140" rx="10" fill="#1a1a2e" stroke="#2a2a3e" stroke-width="1"/>
-            <rect x="60" y="52" width="8" height="8" rx="4" fill="#ff6b6b"/>
-            <text x="74" y="60" fill="#ff6b6b" font-size="9" font-family="Roboto">Model A — rate limited</text>
-            <line x1="60" y1="68" x2="252" y2="68" stroke="#2a2a3e" stroke-width="0.5" stroke-dasharray="3 2"/>
-            <path d="M155 72 L160 84 L165 72" fill="none" stroke="#6c63ff" stroke-width="1.5"/>
-            <text x="176" y="82" fill="#6c63ff" font-size="8" font-family="Share Tech Mono" opacity="0.6">FAILOVER</text>
-            <rect x="60" y="92" width="8" height="8" rx="4" fill="#4ecdc4"/>
-            <text x="74" y="100" fill="#4ecdc4" font-size="9" font-family="Roboto">Model B — online</text>
-            <rect x="200" y="90" width="52" height="14" rx="4" fill="#4ecdc4" opacity="0.12" stroke="#4ecdc4" stroke-width="0.5"/>
-            <text x="226" y="100" text-anchor="middle" fill="#4ecdc4" font-size="8" font-family="Roboto" font-weight="bold">ACTIVE</text>
-            <rect x="60" y="116" width="8" height="8" rx="4" fill="#555"/>
-            <text x="74" y="124" fill="#555" font-size="9" font-family="Roboto">Model C — standby</text>
-            <rect x="60" y="138" width="8" height="8" rx="4" fill="#555"/>
-            <text x="74" y="146" fill="#555" font-size="9" font-family="Roboto">Model D — standby</text>
-          </svg>
-        </div>
-        <div class="feature-body">
-          <div class="feature-title">Auto Failover</div>
-          <div class="feature-desc">Rate-limited or down? TAP auto-routes to the next best model instantly. Zero downtime. No manual intervention.</div>
-        </div>
+        <div class="feature-num">05 //</div>
+        <div class="feature-title">Auto Failover</div>
+        <div class="feature-desc">Rate-limited or down? TAP auto-routes to the next best model instantly. Zero downtime. No manual intervention.</div>
       </div>
       <div class="feature-card">
-        <div class="feature-preview">
-          <svg viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="40" y="30" width="240" height="140" rx="10" fill="#1a1a2e" stroke="#2a2a3e" stroke-width="1"/>
-            <text x="160" y="58" text-anchor="middle" fill="#6c63ff" font-size="11" font-family="Roboto" font-weight="900" letter-spacing="3">TAP</text>
-            <line x1="100" y1="68" x2="220" y2="68" stroke="#2a2a3e" stroke-width="0.5"/>
-            <line x1="160" y1="74" x2="85" y2="100" stroke="#6c63ff" stroke-width="1" opacity="0.3"/>
-            <line x1="160" y1="74" x2="120" y2="100" stroke="#6c63ff" stroke-width="1" opacity="0.3"/>
-            <line x1="160" y1="74" x2="160" y2="100" stroke="#6c63ff" stroke-width="1" opacity="0.3"/>
-            <line x1="160" y1="74" x2="200" y2="100" stroke="#6c63ff" stroke-width="1" opacity="0.3"/>
-            <line x1="160" y1="74" x2="235" y2="100" stroke="#6c63ff" stroke-width="1" opacity="0.3"/>
-            <rect x="70" y="100" width="30" height="16" rx="4" fill="#4285F4" opacity="0.15" stroke="#4285F4" stroke-width="0.5"/>
-            <text x="85" y="111" text-anchor="middle" fill="#4285F4" font-size="6" font-family="Roboto">GEM</text>
-            <rect x="107" y="100" width="30" height="16" rx="4" fill="#0668E1" opacity="0.15" stroke="#0668E1" stroke-width="0.5"/>
-            <text x="122" y="111" text-anchor="middle" fill="#0668E1" font-size="6" font-family="Roboto">LLM</text>
-            <rect x="145" y="100" width="30" height="16" rx="4" fill="#536DFE" opacity="0.15" stroke="#536DFE" stroke-width="0.5"/>
-            <text x="160" y="111" text-anchor="middle" fill="#536DFE" font-size="6" font-family="Roboto">DSK</text>
-            <rect x="183" y="100" width="30" height="16" rx="4" fill="#D97757" opacity="0.15" stroke="#D97757" stroke-width="0.5"/>
-            <text x="198" y="111" text-anchor="middle" fill="#D97757" font-size="6" font-family="Roboto">CLD</text>
-            <rect x="221" y="100" width="30" height="16" rx="4" fill="#FF7000" opacity="0.15" stroke="#FF7000" stroke-width="0.5"/>
-            <text x="236" y="111" text-anchor="middle" fill="#FF7000" font-size="6" font-family="Roboto">MST</text>
-            <rect x="100" y="130" width="120" height="26" rx="8" fill="#6c63ff" opacity="0.1" stroke="#6c63ff" stroke-width="1"/>
-            <text x="160" y="147" text-anchor="middle" fill="#6c63ff" font-size="9" font-family="Roboto" font-weight="bold" letter-spacing="2">ONE API</text>
-          </svg>
-        </div>
-        <div class="feature-body">
-          <div class="feature-title">Unified Interface</div>
-          <div class="feature-desc">One API. One interface. Every model. Stop context-switching between tools. TAP is your single entry point.</div>
-        </div>
+        <div class="feature-num">06 //</div>
+        <div class="feature-title">Unified Interface</div>
+        <div class="feature-desc">One API. One interface. Every model. Stop context-switching between tools. TAP is your single entry point.</div>
       </div>
     </div>
   </section>
@@ -870,10 +809,7 @@
     </div>
   </section>
 
-  <!-- Copyright -->
-  <div style="border-top:1px solid var(--line);padding:24px 48px;text-align:center;background:var(--bg2);">
-    <div style="font-family:'Roboto',sans-serif;font-size:11px;color:var(--grey);letter-spacing:1px;opacity:0.6;">© 2025 TAP AI — Yash Charde, Mahima Bhat, Pradnya Nidagudi, Sahana Holkal. All rights reserved.</div>
-  </div>
+  <!-- Footer removed -->
 
 </div>
 
@@ -1111,7 +1047,8 @@ async function lpDoSignup() {
   document.getElementById('lp-go').disabled = false;
   if (res.error) { errEl.textContent = '> ' + res.error.message.toUpperCase(); return; }
   if (res.data.user && !res.data.session) { errEl.innerHTML = '<span style="color:var(--green)">> CHECK EMAIL TO CONFIRM ACCOUNT</span>'; return; }
-  lpCloseAuth(); window.location.href = '/chat';
+  lpCloseAuth();
+  lpShowTosGate(res.data.session);
 }
 
 async function lpDoSignin() {
@@ -1123,8 +1060,128 @@ async function lpDoSignin() {
   var res = await supa.auth.signInWithPassword({ email: email, password: pass });
   document.getElementById('lp-go').disabled = false;
   if (res.error) { errEl.textContent = '> ' + res.error.message.toUpperCase(); return; }
-  lpCloseAuth(); window.location.href = '/chat';
+  lpCloseAuth();
+  lpShowTosGate(res.data.session);
 }
+
+// ═══════════════════════════════════
+// TERMS & CONDITIONS GATE
+// ═══════════════════════════════════
+function lpHasTosAccepted(userId) {
+  try { return localStorage.getItem('tap_tos_v1_' + userId) === '1'; } catch(e) { return false; }
+}
+function lpMarkTosAccepted(userId) {
+  try { localStorage.setItem('tap_tos_v1_' + userId, '1'); } catch(e) {}
+}
+
+function lpShowTosGate(session) {
+  if (!session || !session.user) { window.location.href = '/chat'; return; }
+  if (lpHasTosAccepted(session.user.id)) { window.location.href = '/chat'; return; }
+  var el = document.getElementById('lp-tos-modal');
+  if (!el) { el = document.createElement('div'); el.id = 'lp-tos-modal'; document.body.appendChild(el); }
+  el.innerHTML =
+    '<div class="tos-overlay">' +
+      '<div class="tos-card">' +
+        '<div class="tos-header">' +
+          '<h2>Before you continue</h2>' +
+          '<p>Please review and accept our API Key Terms</p>' +
+        '</div>' +
+        '<div class="tos-body">' +
+          '<div class="tos-summary">By connecting an API key to <b>Tap.ai</b>, you authorize Tap.ai to use that key to send requests you initiate or approve to the AI provider(s) you connect.</div>' +
+          '<div class="tos-summary" style="margin-bottom:4px"><b>You understand that:</b></div>' +
+          '<div class="tos-bullet">Your API key remains tied to your provider account</div>' +
+          '<div class="tos-bullet">Any usage charges, quota consumption, rate limits, suspensions, or other account effects are governed by your provider\'s terms and billing</div>' +
+          '<div class="tos-bullet">Tap.ai may reformat, optimize, route, or split your prompts across the models/providers you enable in order to provide the service</div>' +
+          '<div class="tos-bullet">Prompts, outputs, and related metadata may be processed and stored as described in our Privacy Policy and these Terms</div>' +
+          '<div class="tos-bullet">You should only connect API keys you are authorized to use, and you may disconnect them at any time</div>' +
+          '<button class="tos-read-more" onclick="lpShowFullTerms()">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>' +
+            'Read Full API Key Terms' +
+          '</button>' +
+          '<div class="tos-checkbox-row" onclick="var cb=this.querySelector(\'input\');cb.checked=!cb.checked;lpToggleTosAgree()">' +
+            '<input type="checkbox" id="lp-tos-check" onclick="event.stopPropagation();lpToggleTosAgree()"/>' +
+            '<label for="lp-tos-check" onclick="event.stopPropagation()">I confirm that I am authorized to use the API key(s) I connect, and I agree to the <b style="color:var(--white)">API Key Terms</b> and <b style="color:var(--white)">Privacy Policy</b>.</label>' +
+          '</div>' +
+          '<button class="tos-agree-btn" id="lp-tos-agree-btn" disabled onclick="lpAcceptTos()">I Agree</button>' +
+          '<div class="tos-decline"><a onclick="lpDeclineTos()">Decline and sign out</a></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  window._lpPendingTosSession = session;
+}
+
+function lpToggleTosAgree() {
+  var cb = document.getElementById('lp-tos-check');
+  var btn = document.getElementById('lp-tos-agree-btn');
+  if (cb && btn) { btn.disabled = !cb.checked; }
+}
+
+function lpAcceptTos() {
+  var session = window._lpPendingTosSession;
+  if (!session || !session.user) return;
+  lpMarkTosAccepted(session.user.id);
+  var el = document.getElementById('lp-tos-modal');
+  if (el) el.innerHTML = '';
+  window._lpPendingTosSession = null;
+  window.location.href = '/chat';
+}
+
+async function lpDeclineTos() {
+  var el = document.getElementById('lp-tos-modal');
+  if (el) el.innerHTML = '';
+  window._lpPendingTosSession = null;
+  await supa.auth.signOut();
+  lpUser = null;
+  document.getElementById('lp-user-area').innerHTML = '<button class="lp-user-btn" onclick="lpShowAuth(\'signin\')">Login</button>';
+}
+
+function lpShowFullTerms() {
+  var el = document.getElementById('lp-tos-full-modal');
+  if (!el) { el = document.createElement('div'); el.id = 'lp-tos-full-modal'; document.body.appendChild(el); }
+  el.innerHTML =
+    '<div class="tos-full-overlay" onclick="if(event.target===this)lpCloseFullTerms()">' +
+      '<div class="tos-full-card" onclick="event.stopPropagation()">' +
+        '<div class="tos-full-header">' +
+          '<h3>API Key Terms — Tap.ai</h3>' +
+          '<button class="tos-full-close" onclick="lpCloseFullTerms()">Close</button>' +
+        '</div>' +
+        '<div class="tos-full-body">' +
+          '<p>These API Key Terms govern your use of the "bring your own key" functionality in Tap.ai, operated by Tap.ai. By connecting, pasting, saving, or using an API key with the Service, you agree to these terms.</p>' +
+          '<h4>1. Your API Keys</h4>' +
+          '<p>You may choose to connect your own API key(s) for supported third-party AI providers ("Provider Keys"). Provider Keys are and remain associated with your own account(s) with the relevant third-party provider(s). We do not transfer ownership of any Provider Key or provider account to ourselves.</p>' +
+          '<h4>2. Authorization</h4>' +
+          '<p>By connecting a Provider Key, you represent and warrant that:</p>' +
+          '<ul><li>You are authorized to use that key and the related provider account</li><li>You have the right to permit us to use that key on your behalf</li><li>Your use does not violate any agreement, workplace policy, or law applicable to you</li><li>You will not connect keys that belong to another person or organization unless expressly authorized</li></ul>' +
+          '<h4>3. How We May Use Your Key</h4>' +
+          '<p>You authorize us to use your connected Provider Key solely to operate the Service features you enable or request, including to: authenticate requests, send prompts and data, enhance/rewrite/optimize prompts, route requests among enabled providers, receive and display outputs, and log minimal technical metadata.</p>' +
+          '<p>We will not use your Provider Key for unrelated purposes.</p>' +
+          '<h4>4. Provider Terms, Billing, and Account Effects</h4>' +
+          '<p>Your use of third-party AI providers through the Service remains subject to the terms, policies, pricing, rate limits, and billing rules of those providers. You are solely responsible for all usage charges, token consumption, and overages. We are not responsible for provider-side outages, suspensions, or pricing changes.</p>' +
+          '<h4>5. Prompt Routing and Optimization</h4>' +
+          '<p>The Service may automatically classify your prompt intent, choose a model/provider, rewrite your prompt for compatibility, and include prior context. You acknowledge that this may change the wording or structure of your input while preserving the intended task.</p>' +
+          '<h4>6. Data You Send Through the Service</h4>' +
+          '<p>We may process: prompts, uploaded files, generated outputs, conversation context, provider settings, and technical metadata. You should not submit data you are not permitted to share.</p>' +
+          '<h4>7. Storage and Security</h4>' +
+          '<p>We store Provider Keys encrypted at rest and transmit them over TLS. While we take reasonable measures to protect Provider Keys, no method is completely secure.</p>' +
+          '<h4>8. Your Security Responsibilities</h4>' +
+          '<p>You agree to: only submit keys through the official flow; not share keys with unauthorized persons; rotate or revoke exposed keys; and promptly disconnect keys you no longer want used.</p>' +
+          '<h4>9. Revocation and Deletion</h4>' +
+          '<p>You may disconnect a Provider Key at any time through Settings. After disconnection, we will stop using that key.</p>' +
+          '<h4>10. Acceptable Use</h4>' +
+          '<p>You may not use the Service to: violate law or third-party rights; access unauthorized resources; interfere with security or operation; submit malware or abusive traffic; or use another person\'s key without authorization.</p>' +
+          '<h4>11. No Warranty</h4>' +
+          '<p>The Service does not guarantee that outputs will be accurate, complete, lawful, unbiased, or fit for any particular purpose. You are responsible for reviewing and validating outputs.</p>' +
+          '<h4>12. Limitation of Liability</h4>' +
+          '<p>To the maximum extent permitted by law, Tap.ai will not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of connected Provider Keys or third-party AI services.</p>' +
+          '<h4>13. Changes</h4>' +
+          '<p>We may update these API Key Terms from time to time. Your continued use after changes take effect constitutes acceptance.</p>' +
+          '<h4>14. Contact</h4>' +
+          '<p>If you have questions about these API Key Terms, contact us at Tap.ai.</p>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+}
+function lpCloseFullTerms() { var el = document.getElementById('lp-tos-full-modal'); if (el) el.innerHTML = ''; }
 
 // Check if already logged in on page load — load profile from DB
 (async function() {
