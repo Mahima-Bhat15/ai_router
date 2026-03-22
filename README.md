@@ -151,25 +151,6 @@ Interactive API docs: **http://localhost:8000/docs** (Swagger UI)
 
 ---
 
-## Project Structure
-
-```
-ai-router/
-├── backend/
-│   ├── main.py                    ← FastAPI server (the brain)
-│   ├── requirements.txt           ← Python dependencies
-│   ├── .env.example               ← API key template
-│   ├── .env                       ← Your actual API keys (git-ignored)
-│   └── services/
-│       ├── intent_classifier.py   ← Rule-based intent detection
-│       ├── model_selector.py      ← Routing table + model selection
-│       └── prompt_engineer.py     ← Prompt rewriting templates
-└── frontend/
-    └── index.html                 ← Chat UI (served by FastAPI)
-```
-
----
-
 ## Troubleshooting
 
 **"Could not reach the backend"**
