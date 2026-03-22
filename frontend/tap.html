@@ -339,30 +339,28 @@
   .section-title span { color:var(--cyan); }
   .features-grid {
     display:grid; grid-template-columns:repeat(3,1fr);
-    gap:1px; background:var(--line); border:1px solid var(--line);
+    gap:24px;
   }
   .feature-card {
-    background:var(--bg2); padding:44px 36px; position:relative;
-    transition:background 0.3s; overflow:hidden;
+    background:var(--bg2); border:1px solid var(--line);
+    border-radius:16px; position:relative;
+    transition:all 0.35s ease; overflow:hidden;
   }
-  .feature-card::before {
-    content:''; position:absolute; top:0; left:0; right:0; height:2px;
-    background:linear-gradient(90deg,var(--cyan),var(--orange));
-    transform:scaleX(0); transform-origin:left; transition:transform 0.4s ease;
+  .feature-card:hover { border-color:rgba(108,99,255,0.35); background:var(--bg3); transform:translateY(-4px); }
+  .feature-preview {
+    width:100%; aspect-ratio:16/10; background:var(--bg);
+    border-bottom:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden; position:relative; padding:24px;
   }
-  .feature-card:hover::before { transform:scaleX(1); }
-  .feature-card:hover { background:var(--bg3); }
-  .feature-num {
-    font-family:'Roboto',sans-serif; font-size:11px;
-    letter-spacing:3px; color:var(--cyan); opacity:0.4; margin-bottom:20px;
-  }
-  .feature-icon { font-size:26px; margin-bottom:18px; }
+  .feature-preview svg { width:100%; height:100%; }
+  .feature-body { padding:28px 28px 32px; }
   .feature-title {
-    font-family:'Roboto',sans-serif;font-weight:900; font-size:28px;
-    letter-spacing:2px; color:var(--white); margin-bottom:14px;
+    font-family:'Roboto',sans-serif;font-weight:900; font-size:22px;
+    letter-spacing:0.5px; color:var(--white); margin-bottom:12px; line-height:1.3;
   }
   .feature-desc {
-    font-family:'Roboto',sans-serif; font-size:15px;
+    font-family:'Roboto',sans-serif; font-size:14px;
     font-weight:400; line-height:1.7; color:var(--grey2);
   }
 
@@ -472,45 +470,16 @@
     .team-grid{grid-template-columns:1fr;}
   }
 
-  /* ═══ FOOTER ═══ */
-  footer {
-    border-top:1px solid var(--line); padding:32px 48px 24px;
-    background:var(--bg2); text-align:center;
-  }
-  .footer-top {
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid var(--line);
-  }
-  .footer-logo {
-    font-family:'Roboto',sans-serif;font-weight:900; font-size:22px;
-    letter-spacing:8px; color:var(--cyan); opacity:0.6;
-  }
-  .footer-mid {
-    font-family:'Roboto',sans-serif; font-size:12px;
-    letter-spacing:4px; color:var(--grey2); text-transform:uppercase;
-  }
-  .footer-links {
-    display:flex; gap:24px; list-style:none;
-  }
-  .footer-links a {
-    font-family:'Roboto',sans-serif; font-size:12px; color:var(--grey2);
-    text-decoration:none; letter-spacing:1px; transition:color 0.2s;
-  }
-  .footer-links a:hover { color:var(--cyan); }
-  .footer-copyright {
-    font-family:'Roboto',sans-serif; font-size:11px;
-    color:var(--grey); letter-spacing:1px; opacity:0.6;
-  }
+  /* ═══ FOOTER REMOVED ═══ */
 
   @media(max-width:900px){
     nav{padding:16px 24px;} .nav-links{display:none;}
     .hero,.features,.models,.cta-section{padding-left:24px;padding-right:24px;}
-    .features-grid{grid-template-columns:1fr;}
+    .features-grid{grid-template-columns:1fr;gap:16px;}
     .pipeline{padding:80px 24px;}
     .pipeline-steps{flex-direction:column;}
     .pipeline-step+.pipeline-step{border-left:1px solid var(--line);border-top:none;}
     .step-arrow{display:none;}
-    footer{flex-direction:column;gap:12px;text-align:center;}
   }
 
   /* Auth modal for landing page */
@@ -548,7 +517,10 @@
 <!-- PERSISTENT HEADER — always visible, even during intro -->
 <div class="top-header">
   <div class="top-header-logo">TAP</div>
+  <div style="font-family:'Roboto',sans-serif;font-size:12px;letter-spacing:4px;color:var(--grey2);text-transform:uppercase;position:absolute;left:50%;transform:translateX(-50%);">Translate · Adapt · Precision</div>
   <div class="top-header-right">
+    <a href="#features-section" class="top-header-btn ghost" style="text-decoration:none;">Features</a>
+    <a href="#team-section" class="top-header-btn ghost" style="text-decoration:none;">Team</a>
     <button class="top-header-btn ghost" onclick="lpShowAuth('signin')">Login</button>
     <a href="/chat" class="top-header-btn primary">Open Chat →</a>
   </div>
@@ -642,40 +614,162 @@
     <div class="section-title">Engineered for <span>Precision</span></div>
     <div class="features-grid">
       <div class="feature-card">
-        <div class="feature-num">01 // TRANSLATE</div>
-        <div class="feature-icon">⚡</div>
-        <div class="feature-title">Intent Detection</div>
-        <div class="feature-desc">Reads your prompt and classifies whether it's code, research, creative, math, or explanation — before you even think to specify.</div>
+        <div class="feature-preview">
+          <svg viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="40" y="30" width="240" height="140" rx="10" fill="#1a1a2e" stroke="#2a2a3e" stroke-width="1"/>
+            <rect x="56" y="50" width="80" height="10" rx="3" fill="#6c63ff" opacity="0.6"/>
+            <rect x="56" y="68" width="55" height="6" rx="2" fill="#333" />
+            <rect x="56" y="82" width="90" height="6" rx="2" fill="#333" />
+            <rect x="56" y="96" width="70" height="6" rx="2" fill="#333" />
+            <circle cx="230" cy="75" r="28" fill="none" stroke="#6c63ff" stroke-width="2" opacity="0.4"/>
+            <path d="M220 75 L228 83 L242 67" stroke="#4ecdc4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="56" y="118" width="45" height="22" rx="6" fill="#6c63ff" opacity="0.15" stroke="#6c63ff" stroke-width="1"/>
+            <text x="78" y="133" text-anchor="middle" fill="#6c63ff" font-size="9" font-family="Roboto">CODE</text>
+            <rect x="110" y="118" width="60" height="22" rx="6" fill="transparent" stroke="#333" stroke-width="1"/>
+            <text x="140" y="133" text-anchor="middle" fill="#555" font-size="9" font-family="Roboto">RESEARCH</text>
+            <rect x="180" y="118" width="55" height="22" rx="6" fill="transparent" stroke="#333" stroke-width="1"/>
+            <text x="207" y="133" text-anchor="middle" fill="#555" font-size="9" font-family="Roboto">CREATIVE</text>
+          </svg>
+        </div>
+        <div class="feature-body">
+          <div class="feature-title">Intent Detection</div>
+          <div class="feature-desc">Reads your prompt and classifies whether it's code, research, creative, math, or explanation — before you even think to specify.</div>
+        </div>
       </div>
       <div class="feature-card">
-        <div class="feature-num">02 // ADAPT</div>
-        <div class="feature-icon">🔀</div>
-        <div class="feature-title">Intelligent Routing</div>
-        <div class="feature-desc">Selects the optimal model from the routing table — Gemini, LLaMA, DeepSeek, and more — matched precisely to your intent.</div>
+        <div class="feature-preview">
+          <svg viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="40" y="30" width="240" height="140" rx="10" fill="#1a1a2e" stroke="#2a2a3e" stroke-width="1"/>
+            <rect x="56" y="48" width="100" height="8" rx="3" fill="#6c63ff" opacity="0.5"/>
+            <rect x="60" y="66" width="8" height="8" rx="4" fill="#4285F4"/>
+            <text x="74" y="73" fill="#888" font-size="9" font-family="Roboto">Gemini 2.5 Pro</text>
+            <rect x="195" y="66" width="50" height="6" rx="3" fill="#4285F4" opacity="0.3"/>
+            <rect x="195" y="66" width="44" height="6" rx="3" fill="#4285F4"/>
+            <text x="255" y="72" fill="#4ecdc4" font-size="10" font-family="Roboto" font-weight="bold">✓</text>
+            <rect x="60" y="84" width="8" height="8" rx="4" fill="#0668E1"/>
+            <text x="74" y="91" fill="#888" font-size="9" font-family="Roboto">LLaMA 3.3 70B</text>
+            <rect x="195" y="84" width="50" height="6" rx="3" fill="#0668E1" opacity="0.3"/>
+            <rect x="195" y="84" width="38" height="6" rx="3" fill="#0668E1"/>
+            <rect x="60" y="102" width="8" height="8" rx="4" fill="#536DFE"/>
+            <text x="74" y="109" fill="#888" font-size="9" font-family="Roboto">DeepSeek R1</text>
+            <rect x="195" y="102" width="50" height="6" rx="3" fill="#536DFE" opacity="0.3"/>
+            <rect x="195" y="102" width="32" height="6" rx="3" fill="#536DFE"/>
+            <rect x="60" y="120" width="8" height="8" rx="4" fill="#D97757"/>
+            <text x="74" y="127" fill="#555" font-size="9" font-family="Roboto">Claude Sonnet</text>
+            <rect x="195" y="120" width="50" height="6" rx="3" fill="#D97757" opacity="0.3"/>
+            <rect x="195" y="120" width="28" height="6" rx="3" fill="#D97757"/>
+            <rect x="60" y="138" width="8" height="8" rx="4" fill="#FF7000"/>
+            <text x="74" y="145" fill="#555" font-size="9" font-family="Roboto">Mistral 8x7B</text>
+            <rect x="195" y="138" width="50" height="6" rx="3" fill="#FF7000" opacity="0.3"/>
+            <rect x="195" y="138" width="22" height="6" rx="3" fill="#FF7000"/>
+          </svg>
+        </div>
+        <div class="feature-body">
+          <div class="feature-title">Intelligent Routing</div>
+          <div class="feature-desc">Selects the optimal model from the routing table — Gemini, LLaMA, DeepSeek, and more — matched precisely to your intent.</div>
+        </div>
       </div>
       <div class="feature-card">
-        <div class="feature-num">03 // PRECISION</div>
-        <div class="feature-icon">🎯</div>
-        <div class="feature-title">Prompt Re-Engineering</div>
-        <div class="feature-desc">Rewrites your prompt in the dialect the chosen model responds to best. The right words, for the right mind.</div>
+        <div class="feature-preview">
+          <svg viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="40" y="30" width="240" height="140" rx="10" fill="#1a1a2e" stroke="#2a2a3e" stroke-width="1"/>
+            <rect x="56" y="48" width="60" height="7" rx="2" fill="#555"/>
+            <rect x="56" y="60" width="140" height="6" rx="2" fill="#333"/>
+            <rect x="56" y="72" width="100" height="6" rx="2" fill="#333"/>
+            <path d="M160 88 L160 100" stroke="#6c63ff" stroke-width="1.5" stroke-dasharray="3 2"/>
+            <polygon points="156,100 160,107 164,100" fill="#6c63ff" opacity="0.6"/>
+            <rect x="56" y="112" width="60" height="7" rx="2" fill="#4ecdc4" opacity="0.7"/>
+            <rect x="56" y="124" width="180" height="6" rx="2" fill="#444"/>
+            <rect x="56" y="136" width="155" height="6" rx="2" fill="#444"/>
+            <rect x="56" y="148" width="120" height="6" rx="2" fill="#444"/>
+            <rect x="244" y="112" width="24" height="24" rx="6" fill="#6c63ff" opacity="0.15" stroke="#6c63ff" stroke-width="1"/>
+            <text x="256" y="128" text-anchor="middle" fill="#6c63ff" font-size="12" font-family="Roboto">✦</text>
+          </svg>
+        </div>
+        <div class="feature-body">
+          <div class="feature-title">Prompt Re-Engineering</div>
+          <div class="feature-desc">Rewrites your prompt in the dialect the chosen model responds to best. The right words, for the right mind.</div>
+        </div>
       </div>
       <div class="feature-card">
-        <div class="feature-num">04 //</div>
-        <div class="feature-icon">📡</div>
-        <div class="feature-title">Full Metadata</div>
-        <div class="feature-desc">Every response returns complete routing metadata — model chosen, rationale, latency, token usage, confidence score.</div>
+        <div class="feature-preview">
+          <svg viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="40" y="30" width="240" height="140" rx="10" fill="#1a1a2e" stroke="#2a2a3e" stroke-width="1"/>
+            <rect x="56" y="48" width="75" height="7" rx="2" fill="#6c63ff" opacity="0.5"/>
+            <rect x="60" y="66" width="60" height="6" rx="2" fill="#555"/>
+            <text x="130" y="71" fill="#4ecdc4" font-size="9" font-family="Share Tech Mono">gemini-2.5-pro</text>
+            <rect x="60" y="82" width="55" height="6" rx="2" fill="#555"/>
+            <text x="125" y="87" fill="#888" font-size="9" font-family="Share Tech Mono">342ms</text>
+            <rect x="60" y="98" width="45" height="6" rx="2" fill="#555"/>
+            <text x="115" y="103" fill="#888" font-size="9" font-family="Share Tech Mono">1,247 tokens</text>
+            <rect x="60" y="114" width="50" height="6" rx="2" fill="#555"/>
+            <text x="120" y="119" fill="#888" font-size="9" font-family="Share Tech Mono">0.94</text>
+            <rect x="60" y="130" width="55" height="6" rx="2" fill="#555"/>
+            <text x="125" y="135" fill="#888" font-size="9" font-family="Share Tech Mono">code_gen</text>
+            <rect x="200" y="60" width="64" height="90" rx="8" fill="#161622" stroke="#2a2a3e" stroke-width="1"/>
+            <circle cx="232" cy="90" r="18" fill="none" stroke="#6c63ff" stroke-width="2" opacity="0.3"/>
+            <path d="M232 78 L232 90 L242 95" stroke="#4ecdc4" stroke-width="1.5" stroke-linecap="round"/>
+            <text x="232" y="122" text-anchor="middle" fill="#6c63ff" font-size="8" font-family="Roboto" letter-spacing="1">LATENCY</text>
+          </svg>
+        </div>
+        <div class="feature-body">
+          <div class="feature-title">Full Metadata</div>
+          <div class="feature-desc">Every response returns complete routing metadata — model chosen, rationale, latency, token usage, confidence score.</div>
+        </div>
       </div>
       <div class="feature-card">
-        <div class="feature-num">05 //</div>
-        <div class="feature-icon">🔁</div>
-        <div class="feature-title">Auto Failover</div>
-        <div class="feature-desc">Rate-limited or down? TAP auto-routes to the next best model instantly. Zero downtime. No manual intervention.</div>
+        <div class="feature-preview">
+          <svg viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="40" y="30" width="240" height="140" rx="10" fill="#1a1a2e" stroke="#2a2a3e" stroke-width="1"/>
+            <rect x="60" y="52" width="8" height="8" rx="4" fill="#ff6b6b"/>
+            <text x="74" y="60" fill="#ff6b6b" font-size="9" font-family="Roboto">Model A — rate limited</text>
+            <line x1="60" y1="68" x2="252" y2="68" stroke="#2a2a3e" stroke-width="0.5" stroke-dasharray="3 2"/>
+            <path d="M155 72 L160 84 L165 72" fill="none" stroke="#6c63ff" stroke-width="1.5"/>
+            <text x="176" y="82" fill="#6c63ff" font-size="8" font-family="Share Tech Mono" opacity="0.6">FAILOVER</text>
+            <rect x="60" y="92" width="8" height="8" rx="4" fill="#4ecdc4"/>
+            <text x="74" y="100" fill="#4ecdc4" font-size="9" font-family="Roboto">Model B — online</text>
+            <rect x="200" y="90" width="52" height="14" rx="4" fill="#4ecdc4" opacity="0.12" stroke="#4ecdc4" stroke-width="0.5"/>
+            <text x="226" y="100" text-anchor="middle" fill="#4ecdc4" font-size="8" font-family="Roboto" font-weight="bold">ACTIVE</text>
+            <rect x="60" y="116" width="8" height="8" rx="4" fill="#555"/>
+            <text x="74" y="124" fill="#555" font-size="9" font-family="Roboto">Model C — standby</text>
+            <rect x="60" y="138" width="8" height="8" rx="4" fill="#555"/>
+            <text x="74" y="146" fill="#555" font-size="9" font-family="Roboto">Model D — standby</text>
+          </svg>
+        </div>
+        <div class="feature-body">
+          <div class="feature-title">Auto Failover</div>
+          <div class="feature-desc">Rate-limited or down? TAP auto-routes to the next best model instantly. Zero downtime. No manual intervention.</div>
+        </div>
       </div>
       <div class="feature-card">
-        <div class="feature-num">06 //</div>
-        <div class="feature-icon">🧬</div>
-        <div class="feature-title">Unified Interface</div>
-        <div class="feature-desc">One API. One interface. Every model. Stop context-switching between tools. TAP is your single entry point.</div>
+        <div class="feature-preview">
+          <svg viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="40" y="30" width="240" height="140" rx="10" fill="#1a1a2e" stroke="#2a2a3e" stroke-width="1"/>
+            <text x="160" y="58" text-anchor="middle" fill="#6c63ff" font-size="11" font-family="Roboto" font-weight="900" letter-spacing="3">TAP</text>
+            <line x1="100" y1="68" x2="220" y2="68" stroke="#2a2a3e" stroke-width="0.5"/>
+            <line x1="160" y1="74" x2="85" y2="100" stroke="#6c63ff" stroke-width="1" opacity="0.3"/>
+            <line x1="160" y1="74" x2="120" y2="100" stroke="#6c63ff" stroke-width="1" opacity="0.3"/>
+            <line x1="160" y1="74" x2="160" y2="100" stroke="#6c63ff" stroke-width="1" opacity="0.3"/>
+            <line x1="160" y1="74" x2="200" y2="100" stroke="#6c63ff" stroke-width="1" opacity="0.3"/>
+            <line x1="160" y1="74" x2="235" y2="100" stroke="#6c63ff" stroke-width="1" opacity="0.3"/>
+            <rect x="70" y="100" width="30" height="16" rx="4" fill="#4285F4" opacity="0.15" stroke="#4285F4" stroke-width="0.5"/>
+            <text x="85" y="111" text-anchor="middle" fill="#4285F4" font-size="6" font-family="Roboto">GEM</text>
+            <rect x="107" y="100" width="30" height="16" rx="4" fill="#0668E1" opacity="0.15" stroke="#0668E1" stroke-width="0.5"/>
+            <text x="122" y="111" text-anchor="middle" fill="#0668E1" font-size="6" font-family="Roboto">LLM</text>
+            <rect x="145" y="100" width="30" height="16" rx="4" fill="#536DFE" opacity="0.15" stroke="#536DFE" stroke-width="0.5"/>
+            <text x="160" y="111" text-anchor="middle" fill="#536DFE" font-size="6" font-family="Roboto">DSK</text>
+            <rect x="183" y="100" width="30" height="16" rx="4" fill="#D97757" opacity="0.15" stroke="#D97757" stroke-width="0.5"/>
+            <text x="198" y="111" text-anchor="middle" fill="#D97757" font-size="6" font-family="Roboto">CLD</text>
+            <rect x="221" y="100" width="30" height="16" rx="4" fill="#FF7000" opacity="0.15" stroke="#FF7000" stroke-width="0.5"/>
+            <text x="236" y="111" text-anchor="middle" fill="#FF7000" font-size="6" font-family="Roboto">MST</text>
+            <rect x="100" y="130" width="120" height="26" rx="8" fill="#6c63ff" opacity="0.1" stroke="#6c63ff" stroke-width="1"/>
+            <text x="160" y="147" text-anchor="middle" fill="#6c63ff" font-size="9" font-family="Roboto" font-weight="bold" letter-spacing="2">ONE API</text>
+          </svg>
+        </div>
+        <div class="feature-body">
+          <div class="feature-title">Unified Interface</div>
+          <div class="feature-desc">One API. One interface. Every model. Stop context-switching between tools. TAP is your single entry point.</div>
+        </div>
       </div>
     </div>
   </section>
@@ -753,41 +847,34 @@
     <div class="section-label">// The Team</div>
     <div class="section-title">Meet the <span>Team</span></div>
     <div class="team-grid">
-      <div class="team-card">
+      <a href="https://www.linkedin.com/in/chardeyash/" target="_blank" class="team-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;">
         <div class="team-avatar"><img src="/static/images/yash.JPG" alt="YC" style="width:100%; height:100%; border-radius:50%; object-fit:cover;"></div>
         <div class="team-name">Yash Ravindra Charde</div>
         <div class="team-role">Co-Founder</div>
-      </div>
-      <div class="team-card">
+      </a>
+      <a href="https://www.linkedin.com/in/mahima-bhat-a923b2262/" target="_blank" class="team-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;">
         <div class="team-avatar"><img src="/static/images/mahima.jpg" alt="MB" style="width:100%; height:100%; border-radius:50%; object-fit:cover;"></div>
         <div class="team-name">Mahima Ramdas Bhat</div>
         <div class="team-role">Co-Founder</div>
-      </div>
-      <div class="team-card">
+      </a>
+      <a href="https://www.linkedin.com/in/pradnya-nidagundi/" target="_blank" class="team-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;">
         <div class="team-avatar"><img src="/static/images/pradnya.jpg" alt="PN" style="width:100%; height:100%; border-radius:50%; object-fit:cover;"></div>
         <div class="team-name">Pradnya Sanjeev Nidagudi</div>
         <div class="team-role">Co-Founder</div>
-      </div>
-      <div class="team-card">
+      </a>
+      <a href="https://www.linkedin.com/in/sahanahj/" target="_blank" class="team-card" style="text-decoration:none;color:inherit;display:block;cursor:pointer;">
         <div class="team-avatar"><img src="/static/images/sahana.PNG" alt="SH" style="width:100%; height:100%; border-radius:50%; object-fit:cover;"></div>
         <div class="team-name">Sahana Jayasimha Holkal</div>
         <div class="team-role">Co-Founder</div>
-      </div>
+      </a>
     </div>
   </section>
 
-  <footer>
-    <div class="footer-top">
-      <div class="footer-logo">TAP</div>
-      <div class="footer-mid">Translate · Adapt · Precision</div>
-      <ul class="footer-links">
-        <li><a href="#features-section">Features</a></li>
-        <li><a href="#pipeline-section">Pipeline</a></li>
-        <li><a href="#team-section">Team</a></li>
-      </ul>
-    </div>
-    <div class="footer-copyright">© 2025 TAP AI — Yash Charde, Mahima Bhat, Pradnya Nidagudi, Sahana Holkal. All rights reserved.</div>
-  </footer>
+  <!-- Copyright -->
+  <div style="border-top:1px solid var(--line);padding:24px 48px;text-align:center;background:var(--bg2);">
+    <div style="font-family:'Roboto',sans-serif;font-size:11px;color:var(--grey);letter-spacing:1px;opacity:0.6;">© 2025 TAP AI — Yash Charde, Mahima Bhat, Pradnya Nidagudi, Sahana Holkal. All rights reserved.</div>
+  </div>
+
 </div>
 
 <script>

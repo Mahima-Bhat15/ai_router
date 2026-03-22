@@ -61,6 +61,24 @@ body{font-family:'Roboto',sans-serif;background:var(--bg);color:var(--text);heig
 .key-clear:hover{color:var(--red);border-color:rgba(255,107,107,.4)}
 .key-mask{flex:1;padding:6px 8px;border-radius:var(--r);background:var(--surface2);border:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text3)}
 .key-hint{font-size:9px;color:var(--text3)}
+.key-icon-btn{width:30px;height:30px;border-radius:var(--r);border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0;font-size:13px}
+.key-icon-btn:hover{background:var(--surface2);color:var(--text)}
+.key-icon-btn.del:hover{color:var(--red);border-color:rgba(255,107,107,.4)}
+.key-icon-btn.edit:hover{color:var(--accent);border-color:var(--accent)}
+.del-confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s ease}
+.del-confirm-card{width:340px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);box-shadow:0 24px 80px rgba(0,0,0,.6);animation:popIn .22s ease;padding:24px;text-align:center}
+.del-confirm-card h3{font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px}
+.del-confirm-card p{font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.5}
+.del-confirm-card input{width:100%;padding:10px 12px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-family:'JetBrains Mono',monospace;outline:none;text-align:center;margin-bottom:12px}
+.del-confirm-card input:focus{border-color:var(--red)}
+.del-confirm-card input::placeholder{color:var(--text3)}
+.del-confirm-btns{display:flex;gap:8px}
+.del-confirm-btns button{flex:1;padding:10px;border-radius:var(--r);border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s}
+.del-confirm-btns .del-cancel{background:var(--surface2);border:1px solid var(--border);color:var(--text2)}
+.del-confirm-btns .del-cancel:hover{border-color:var(--text3);color:var(--text)}
+.del-confirm-btns .del-go{background:var(--red);color:#fff;opacity:.4;cursor:not-allowed}
+.del-confirm-btns .del-go.enabled{opacity:1;cursor:pointer}
+.del-confirm-btns .del-go.enabled:hover{background:#e55a5a}
 
 /* Main */
 .main-col{flex:1;display:flex;flex-direction:column;overflow:hidden}
@@ -499,15 +517,18 @@ async function loadChatsFromDB(){
   if(res.error){console.error('Load chats error:',res.error);return;}
   if(res.data&&res.data.length){
     chats=res.data.map(function(r){return{id:r.id,title:r.title,date:r.chat_date||'',html:r.html||''};});
-    activeChatId=chats[0].id;
-    var activeHtml=chats[0].html;
-    cv.innerHTML=activeHtml&&activeHtml.trim()?activeHtml:renderWelcome();
+    // Always open a new chat on login instead of resuming existing
+    var newId=uid();
+    chats.unshift({id:newId,title:'New conversation',date:todayStr(),html:''});
+    activeChatId=newId;
+    cv.innerHTML=renderWelcome();
+    // Don't save empty chat to DB — it will be saved when user sends first message
   }else{
     var newId=uid();
     chats=[{id:newId,title:'New conversation',date:todayStr(),html:''}];
     activeChatId=newId;
     cv.innerHTML=renderWelcome();
-    await saveChatToDB(chats[0]);
+    // Don't save empty chat to DB
   }
   renderChatList();
 }
@@ -632,7 +653,7 @@ function newChat(){
   saveCurrentChatHtml();var id=uid();
   chats.unshift({id:id,title:"New conversation",date:todayStr(),html:""});
   activeChatId=id;cv.innerHTML=renderWelcome();
-  if(currentUser)saveChatToDB(chats[0]);
+  // Don't save empty chat to DB — it will be saved when user sends first message
   renderChatList();pi.focus();
 }
 function switchChat(id){
@@ -645,7 +666,7 @@ function switchChat(id){
 }
 function delChat(id){
   chats=chats.filter(function(c){return c.id!==id;});
-  if(!chats.length){var nid=uid();chats=[{id:nid,title:"New conversation",date:todayStr(),html:""}];if(currentUser)saveChatToDB(chats[0]);}
+  if(!chats.length){var nid=uid();chats=[{id:nid,title:"New conversation",date:todayStr(),html:""}];}
   if(activeChatId===id){activeChatId=chats[0].id;cv.innerHTML=getActiveChat().html||renderWelcome();}
   deleteChatFromDB(id);renderChatList();
 }
@@ -657,7 +678,8 @@ function saveCurrentChatHtml(){
   var wel=clone.querySelector('#wel');
   if(wel)wel.remove();
   c.html=clone.innerHTML;
-  if(currentUser)saveChatToDB(c);
+  // Only save to DB if the chat has actual message content (not empty)
+  if(currentUser&&c.html&&c.html.trim())saveChatToDB(c);
 }
 function renderWelcome(){
   return '<div class="welcome" id="wel"><h2>You had the right question all along, we just tapped into it.</h2><p>You bring the thought. TAP does the rest — ranking seven models, selecting the sharpest one, refining your prompt, and delivering an answer worth having.</p><div class="exs"><button class="ex" onclick="useEx(this)">Write a Python script to parse CSV and find duplicates</button><button class="ex" onclick="useEx(this)">Explain how TCP/IP works in simple terms</button><button class="ex" onclick="useEx(this)">Compare React vs Vue for a new project</button><button class="ex" onclick="useEx(this)">Solve: integral of x²·sin(x) dx</button></div></div>';
@@ -675,7 +697,7 @@ document.getElementById('keys-toggle-btn').addEventListener('click',function(){k
 function renderKeysPanel(){
   document.getElementById('keys-body').innerHTML=PROVIDERS_DEF.map(function(p){
     var hk=keyStatus[p.key],sc=hk?'saved':'unset',st=hk?'✓ saved':'not set',inner;
-    if(hk){inner='<div style="display:flex;gap:5px"><div class="key-mask">••••••••</div><button class="key-clear" onclick="clearKey(\''+p.key+'\')">Clear</button></div>';}
+    if(hk){inner='<div style="display:flex;gap:5px;align-items:center"><div class="key-mask">••••••••</div><button class="key-icon-btn edit" onclick="editKey(\''+p.key+'\')" title="Update key"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="key-icon-btn del" onclick="showDeleteConfirm(\''+p.key+'\')" title="Delete key"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button></div>';}
     else{inner='<div class="key-row"><input class="key-inp" type="password" placeholder="'+p.keyPh+'" id="kinp-'+p.key+'" onkeydown="if(event.key===\'Enter\')saveKey(\''+p.key+'\')"/><button class="key-save" onclick="saveKey(\''+p.key+'\')">Save</button></div>';}
     return '<div class="provider-key"><div class="prov-label-row"><div class="prov-name" style="color:'+p.color+'">'+p.name+'</div><span class="prov-status '+sc+'">'+st+'</span></div>'+inner+'<div class="key-hint">'+p.keyHint+(p.free?' (free)':'')+'</div></div>';
   }).join('');
@@ -697,6 +719,42 @@ async function clearKey(pk){
     var upd={};upd[pk]='';
     await supa.from('user_api_keys').update(upd).eq('user_id',currentUser.id);
   }
+}
+var pendingDeleteKey='';
+function showDeleteConfirm(pk){
+  pendingDeleteKey=pk;
+  var prov=PROVIDERS_DEF.find(function(p){return p.key===pk;});
+  var name=prov?prov.name:pk;
+  var el=document.getElementById('del-confirm-modal');
+  if(!el){el=document.createElement('div');el.id='del-confirm-modal';document.body.appendChild(el);}
+  el.innerHTML='<div class="del-confirm-overlay" onclick="if(event.target===this)closeDeleteConfirm()"><div class="del-confirm-card" onclick="event.stopPropagation()"><h3>Delete API Key</h3><p>This will remove your <b style="color:var(--red)">'+esc(name)+'</b> API key. Type <b style="color:var(--red)">delete</b> below to confirm.</p><input id="del-confirm-inp" placeholder="Type delete" autocomplete="off" oninput="checkDeleteInput()"/><div class="del-confirm-btns"><button class="del-cancel" onclick="closeDeleteConfirm()">Cancel</button><button class="del-go" id="del-go-btn" onclick="confirmDeleteKey()">Delete Key</button></div></div></div>';
+  setTimeout(function(){var inp=document.getElementById('del-confirm-inp');if(inp){inp.focus();inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&inp.value.trim().toLowerCase()==='delete')confirmDeleteKey();});}},50);
+}
+function checkDeleteInput(){
+  var inp=document.getElementById('del-confirm-inp');
+  var btn=document.getElementById('del-go-btn');
+  if(!inp||!btn)return;
+  if(inp.value.trim().toLowerCase()==='delete'){btn.classList.add('enabled');}
+  else{btn.classList.remove('enabled');}
+}
+function closeDeleteConfirm(){
+  var el=document.getElementById('del-confirm-modal');
+  if(el)el.innerHTML='';
+  pendingDeleteKey='';
+}
+function confirmDeleteKey(){
+  var inp=document.getElementById('del-confirm-inp');
+  if(!inp||inp.value.trim().toLowerCase()!=='delete')return;
+  closeDeleteConfirm();
+  if(pendingDeleteKey)clearKey(pendingDeleteKey);
+  pendingDeleteKey='';
+}
+function editKey(pk){
+  // Switch from masked view to input for updating
+  keyStatus[pk]=false;
+  renderKeysPanel();
+  // Pre-focus the input
+  setTimeout(function(){var inp=document.getElementById('kinp-'+pk);if(inp){inp.value=userKeys[pk];inp.focus();inp.select();}},50);
 }
 async function loadUserKeys(){
   if(!currentUser||!supa)return;
@@ -946,20 +1004,32 @@ function tutShow() {
       '</div>' +
     '</div>';
 
-  // Position the card relative to the highlight
+  // Position the card relative to the highlight, clamped within viewport
   var cardW = 340, cardH = 200;
+  var vpW = window.innerWidth, vpH = window.innerHeight;
   if (step.pos === 'right') {
-    card.style.top = rect.top + 'px';
-    card.style.left = (rect.right + 16) + 'px';
+    card.style.top = Math.min(rect.top, vpH - cardH - 12) + 'px';
+    card.style.left = Math.min(rect.right + 16, vpW - cardW - 12) + 'px';
     card.style.bottom = 'auto'; card.style.right = 'auto';
   } else if (step.pos === 'bottom') {
-    card.style.top = (rect.bottom + 16) + 'px';
-    card.style.left = Math.max(12, rect.left - 40) + 'px';
+    var cardTop = rect.bottom + 16;
+    if (cardTop + cardH > vpH - 12) cardTop = Math.max(12, rect.top - cardH - 16);
+    card.style.top = cardTop + 'px';
+    card.style.left = Math.max(12, Math.min(rect.left - 40, vpW - cardW - 12)) + 'px';
     card.style.bottom = 'auto'; card.style.right = 'auto';
   } else if (step.pos === 'top') {
-    card.style.bottom = (window.innerHeight - rect.top + 16) + 'px';
-    card.style.left = Math.max(12, rect.left) + 'px';
-    card.style.top = 'auto'; card.style.right = 'auto';
+    var cardBottom = vpH - rect.top + 16;
+    var cardTopCalc = rect.top - 16 - cardH;
+    // If card goes above viewport, place it to the right of the element instead
+    if (cardTopCalc < 12) {
+      card.style.top = Math.max(12, Math.min(rect.top, vpH - cardH - 12)) + 'px';
+      card.style.left = Math.min(rect.right + 16, vpW - cardW - 12) + 'px';
+      card.style.bottom = 'auto'; card.style.right = 'auto';
+    } else {
+      card.style.bottom = Math.max(12, cardBottom) + 'px';
+      card.style.left = Math.max(12, Math.min(rect.left, vpW - cardW - 12)) + 'px';
+      card.style.top = 'auto'; card.style.right = 'auto';
+    }
   }
 }
 
