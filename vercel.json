@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 2,
   "routes": [
     { "src": "^/$", "dest": "/tap.html" },
     { "src": "^/tap$", "dest": "/tap.html" },
