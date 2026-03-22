@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230c0c0c'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='18' fill='%236c63ff'%3ETAP%3C/text%3E%3C/svg%3E"/>
 <title>TAP — Translate. Adapt. Precision.</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
@@ -860,8 +861,8 @@ runIntro();
 // ═══════════════════════════════════
 // SUPABASE AUTH FOR LANDING PAGE
 // ═══════════════════════════════════
-const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+const SUPABASE_URL = 'https://sqdioeitfrownfhyfrxo.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxZGlvZWl0ZnJvd25maHlmcnhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxNDM2NjIsImV4cCI6MjA4OTcxOTY2Mn0.pRcU6dXLyXsQanzvSx29esOxnARbo5GP9GhlbnP873I';
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let lpUser = null;
 

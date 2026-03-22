@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230c0c0c'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='18' fill='%236c63ff'%3ETAP%3C/text%3E%3C/svg%3E"/>
 <title>TAP — AI Router</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -267,51 +268,17 @@ body{font-family:'Roboto',sans-serif;background:var(--bg);color:var(--text);heig
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// SUPABASE — initialized from backend config (keys in .env)
+// SUPABASE CONFIG — Replace with your project values
 // ═══════════════════════════════════════════════════════════
-const API='http://localhost:8000';
-let supa=null; // initialized async after config fetch
+const SUPABASE_URL = 'https://sqdioeitfrownfhyfrxo.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxZGlvZWl0ZnJvd25maHlmcnhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxNDM2NjIsImV4cCI6MjA4OTcxOTY2Mn0.pRcU6dXLyXsQanzvSx29esOxnARbo5GP9GhlbnP873I';
+const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+const API='http://localhost:8000';
 const cv=document.getElementById('cv'),pi=document.getElementById('pi'),sb=document.getElementById('sb');
 let busy=false;
-let currentUser=null;   // auth.users object
-let userProfile=null;   // profiles table row
-let authReady=false;     // prevents double-init
-
-// Proper UUID generator (matches Supabase uuid column)
-function uid(){return crypto.randomUUID();}
-function todayStr(){return new Date().toLocaleDateString([],{month:"short",day:"numeric"});}
-
-// Boot everything — fetch Supabase config from backend, then init auth
-(async function boot(){
-  try{
-    var r=await fetch(API+'/api/supabase-config');
-    if(!r.ok) throw new Error('Backend returned '+r.status);
-    var cfg=await r.json();
-    supa=window.supabase.createClient(cfg.url,cfg.anon_key);
-  }catch(e){
-    console.error('Supabase config failed:',e);
-    // Continue without auth — user can still view the UI
-    renderUserArea();renderLoginGate();renderChatList();
-    cv.innerHTML=renderWelcome();
-    return;
-  }
-
-  // Listen for auth state changes (handles token refresh, tab focus, etc.)
-  supa.auth.onAuthStateChange(function(event,session){
-    if(!authReady)return; // skip the initial fire — we handle it below
-    onAuthChange(session);
-  });
-
-  // Check existing session
-  var res=await supa.auth.getSession();
-  if(res.data.session){
-    await onAuthChange(res.data.session);
-  }else{
-    renderUserArea();renderLoginGate();
-  }
-  authReady=true; // now allow onAuthStateChange to fire
-})();
+let currentUser=null;   // auth.users object (id, email, etc.)
+let userProfile=null;   // profiles table row (display_name, avatar_url, bio)
 
 // ═══════════════════════════════════════════════════════════
 // AUTH — Signup / Signin / Session
@@ -362,7 +329,6 @@ function renderAuthForm(tab){
   },50);
 }
 async function doSignup(){
-  if(!supa){alert('Connecting to auth service...');return;}
   var name=(document.getElementById('auth-name').value||'').trim();
   var email=(document.getElementById('auth-email').value||'').trim();
   var pass=document.getElementById('auth-pass').value;
@@ -379,7 +345,6 @@ async function doSignup(){
   await onAuthChange(res.data.session);
 }
 async function doSignin(){
-  if(!supa){alert('Connecting to auth service...');return;}
   var email=(document.getElementById('auth-email').value||'').trim();
   var pass=document.getElementById('auth-pass').value;
   var errEl=document.getElementById('auth-err');
@@ -392,7 +357,7 @@ async function doSignin(){
   await onAuthChange(res.data.session);
 }
 async function doSignout(){
-  if(supa) await supa.auth.signOut();
+  await supa.auth.signOut();
   currentUser=null;userProfile=null;
   chats=[{id:uid(),title:'New conversation',date:todayStr(),html:''}];
   activeChatId=chats[0].id;
@@ -403,7 +368,7 @@ async function doSignout(){
 // PROFILE — reads/writes from public.profiles table
 // ═══════════════════════════════════════════════════════════
 async function loadProfile(){
-  if(!currentUser||!supa)return;
+  if(!currentUser)return;
   var res=await supa.from('profiles').select('*').eq('id',currentUser.id).single();
   if(res.error){
     console.error('Load profile error:',res.error);
@@ -439,7 +404,6 @@ function showProfileModal(){
 }
 function closeProfileModal(){document.getElementById('profile-modal').innerHTML='';}
 async function saveProfile(){
-  if(!supa||!currentUser)return;
   var name=(document.getElementById('prof-name').value||'').trim();
   var bio=(document.getElementById('prof-bio').value||'').trim();
   var avatar=(document.getElementById('prof-avatar').value||'').trim();
@@ -502,7 +466,7 @@ function renderLoginGate(){
 // SUPABASE CHAT PERSISTENCE
 // ═══════════════════════════════════════════════════════════
 async function loadChatsFromDB(){
-  if(!currentUser||!supa)return;
+  if(!currentUser)return;
   var res=await supa.from('chats').select('*').eq('user_id',currentUser.id).order('updated_at',{ascending:false});
   if(res.error){console.error('Load chats error:',res.error);return;}
   if(res.data.length){
@@ -518,12 +482,12 @@ async function loadChatsFromDB(){
   renderChatList();
 }
 async function saveChatToDB(c){
-  if(!currentUser||!supa)return;
+  if(!currentUser)return;
   var res=await supa.from('chats').upsert({id:c.id,user_id:currentUser.id,title:c.title,chat_date:c.date,html:c.html,updated_at:new Date().toISOString()},{onConflict:'id'});
   if(res.error)console.error('Save chat error:',res.error);
 }
 async function deleteChatFromDB(id){
-  if(!currentUser||!supa)return;
+  if(!currentUser)return;
   await supa.from('chats').delete().eq('id',id).eq('user_id',currentUser.id);
 }
 
@@ -547,7 +511,19 @@ async function onAuthChange(session){
   }
 }
 
-// (Auth state listener and session check are in boot() above)
+supa.auth.onAuthStateChange(function(event,session){
+  onAuthChange(session);
+});
+
+// Check existing session on load
+(async function(){
+  var res=await supa.auth.getSession();
+  if(res.data.session){
+    await onAuthChange(res.data.session);
+  }else{
+    renderUserArea();renderLoginGate();
+  }
+})();
 
 // ═══════════════════════════════════════════════════════════
 // PROVIDERS & MODELS (unchanged)
@@ -587,6 +563,8 @@ function vcolor(v){return VC[v]||VC.generic;}
 // ═══════════════════════════════════════════════════════════
 // CHAT STATE
 // ═══════════════════════════════════════════════════════════
+function uid(){return Math.random().toString(36).slice(2,10);}
+function todayStr(){return new Date().toLocaleDateString([],{month:"short",day:"numeric"});}
 var firstId=uid();
 var chats=[{id:firstId,title:"New conversation",date:todayStr(),html:""}];
 var activeChatId=firstId;
