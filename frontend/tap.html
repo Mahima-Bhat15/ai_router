@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>TAP — Translate. Adapt. Precision.</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
 <style>
   :root {
@@ -423,6 +424,32 @@
     .step-arrow{display:none;}
     footer{flex-direction:column;gap:12px;text-align:center;}
   }
+
+  /* Auth modal for landing page */
+  .lp-auth-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;animation:fadeInAuth .2s ease}
+  @keyframes fadeInAuth{from{opacity:0}to{opacity:1}}
+  .lp-auth-card{width:380px;background:#0A1520;border:1px solid var(--line);border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.8);animation:popInAuth .22s ease;overflow:hidden;position:relative}
+  @keyframes popInAuth{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+  .lp-auth-header{padding:24px 28px 16px;text-align:center}
+  .lp-auth-logo{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--cyan);letter-spacing:8px;text-shadow:0 0 20px var(--cyan-glow)}
+  .lp-auth-sub{font-family:'Rajdhani',sans-serif;font-size:13px;color:var(--grey2);margin-top:4px}
+  .lp-auth-tabs{display:flex;border-bottom:1px solid var(--line)}
+  .lp-auth-tab{flex:1;padding:10px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--grey2);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;text-transform:uppercase}
+  .lp-auth-tab:hover{color:var(--white)}.lp-auth-tab.on{color:var(--cyan);border-bottom-color:var(--cyan)}
+  .lp-auth-body{padding:20px 28px 24px}
+  .lp-auth-field{margin-bottom:14px}
+  .lp-auth-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--grey2);margin-bottom:5px;display:block;text-transform:uppercase}
+  .lp-auth-input{width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg2);color:var(--white);font-size:13px;font-family:'Rajdhani',sans-serif;outline:none;letter-spacing:1px}
+  .lp-auth-input:focus{border-color:var(--cyan);box-shadow:0 0 10px rgba(0,245,255,.15)}
+  .lp-auth-input::placeholder{color:var(--grey)}
+  .lp-auth-submit{width:100%;padding:12px;border:none;background:var(--cyan);color:var(--bg);font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:.2s;margin-top:8px;font-weight:bold}
+  .lp-auth-submit:hover{box-shadow:0 0 30px var(--cyan-glow)}.lp-auth-submit:disabled{opacity:.5;cursor:not-allowed}
+  .lp-auth-err{font-family:'Share Tech Mono',monospace;font-size:10px;color:#ff6b6b;margin-top:8px;min-height:14px;letter-spacing:1px}
+  .lp-auth-skip{text-align:center;margin:14px 0 20px;font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--grey2)}
+  .lp-auth-skip a{color:var(--cyan);cursor:pointer;text-decoration:none;letter-spacing:1px}.lp-auth-skip a:hover{text-decoration:underline}
+  .lp-auth-close{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--grey2);font-size:16px;cursor:pointer;padding:4px 8px;transition:.15s}.lp-auth-close:hover{color:var(--white)}
+  .lp-user-btn{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;padding:8px 16px;border:1px solid var(--cyan);color:var(--cyan);background:transparent;cursor:pointer;transition:all .2s;text-transform:uppercase;display:flex;align-items:center;gap:6px;margin-left:20px}
+  .lp-user-btn:hover{background:rgba(0,245,255,.08);box-shadow:0 0 15px var(--cyan-glow)}
 </style>
 </head>
 <body>
@@ -469,6 +496,7 @@
       <li><a href="#models-section">Models</a></li>
     </ul>
     <a href="/chat" class="nav-btn" style="text-decoration:none;margin-left:40px"><span>Open Chat →</span></a>
+    <div id="lp-user-area"><button class="lp-user-btn" onclick="lpShowAuth('signin')">👤 Login</button></div>
   </nav>
 
   <section class="hero">
@@ -483,7 +511,7 @@
     <div class="hero-tagline">Tap into your true potential.</div>
 
     <div class="hero-actions">
-      <a href="/chat" class="btn-primary" style="text-decoration:none">Launch TAP →</a>
+      <button class="btn-primary" onclick="launchTap()">Launch TAP →</button>
       <a href="#features-section" class="btn-ghost" style="text-decoration:none"><span>Learn More</span></a>
     </div>
 
@@ -620,7 +648,7 @@
   <section class="cta-section">
     <div class="cta-title">Ready to <span>TAP</span> in?</div>
     <div class="cta-sub">Tap into your true potential. Starting now.</div>
-    <button class="btn-primary" onclick="window.location.href='/chat'">Launch TAP →</button>
+    <button class="btn-primary" onclick="launchTap()">Launch TAP →</button>
   </section>
 
   <footer>
@@ -934,6 +962,122 @@ async function startWithAudio() {
 document.addEventListener('click', startWithAudio, { once: true });
 document.addEventListener('keydown', startWithAudio, { once: true });
 document.addEventListener('touchstart', startWithAudio, { once: true });
+
+// ═══════════════════════════════════
+// SUPABASE AUTH FOR LANDING PAGE
+// ═══════════════════════════════════
+const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let lpUser = null;
+
+function launchTap() {
+  // Show auth modal if not logged in, else go straight to chat
+  if (lpUser) { window.location.href = '/chat'; }
+  else { lpShowAuth('signup'); }
+}
+
+function lpShowAuth(tab) {
+  tab = tab || 'signin';
+  var el = document.getElementById('lp-auth-modal');
+  if (!el) { el = document.createElement('div'); el.id = 'lp-auth-modal'; document.body.appendChild(el); }
+  el.innerHTML =
+    '<div class="lp-auth-overlay" onclick="if(event.target===this)lpCloseAuth()">' +
+      '<div class="lp-auth-card" onclick="event.stopPropagation()">' +
+        '<button class="lp-auth-close" onclick="lpCloseAuth()">✕</button>' +
+        '<div class="lp-auth-header"><div class="lp-auth-logo">TAP</div><div class="lp-auth-sub">Sign in to save chats and get full access</div></div>' +
+        '<div class="lp-auth-tabs">' +
+          '<div class="lp-auth-tab' + (tab === 'signin' ? ' on' : '') + '" onclick="lpSwitchTab(\'signin\')">Sign In</div>' +
+          '<div class="lp-auth-tab' + (tab === 'signup' ? ' on' : '') + '" onclick="lpSwitchTab(\'signup\')">Sign Up</div>' +
+        '</div>' +
+        '<div id="lp-auth-body"></div>' +
+        '<div class="lp-auth-skip">or <a onclick="lpCloseAuth();window.location.href=\'/chat\'">skip for now</a> (limited access)</div>' +
+      '</div>' +
+    '</div>';
+  lpRenderForm(tab);
+}
+
+function lpCloseAuth() { var el = document.getElementById('lp-auth-modal'); if (el) el.innerHTML = ''; }
+
+function lpSwitchTab(tab) {
+  document.querySelectorAll('.lp-auth-tab').forEach(function(t) { t.classList.toggle('on', t.textContent.toLowerCase().replace(' ', '') === tab); });
+  lpRenderForm(tab);
+}
+
+function lpRenderForm(tab) {
+  var body = document.getElementById('lp-auth-body');
+  if (!body) return;
+  if (tab === 'signup') {
+    body.innerHTML =
+      '<div class="lp-auth-body">' +
+        '<div class="lp-auth-field"><label class="lp-auth-label">Display Name</label><input class="lp-auth-input" id="lp-name" placeholder="Your name"/></div>' +
+        '<div class="lp-auth-field"><label class="lp-auth-label">Email</label><input class="lp-auth-input" id="lp-email" type="email" placeholder="you@example.com"/></div>' +
+        '<div class="lp-auth-field"><label class="lp-auth-label">Password</label><input class="lp-auth-input" id="lp-pass" type="password" placeholder="Min 6 characters"/></div>' +
+        '<button class="lp-auth-submit" id="lp-go" onclick="lpDoSignup()">Create Account</button>' +
+        '<div class="lp-auth-err" id="lp-err"></div>' +
+      '</div>';
+  } else {
+    body.innerHTML =
+      '<div class="lp-auth-body">' +
+        '<div class="lp-auth-field"><label class="lp-auth-label">Email</label><input class="lp-auth-input" id="lp-email" type="email" placeholder="you@example.com"/></div>' +
+        '<div class="lp-auth-field"><label class="lp-auth-label">Password</label><input class="lp-auth-input" id="lp-pass" type="password" placeholder="Password"/></div>' +
+        '<button class="lp-auth-submit" id="lp-go" onclick="lpDoSignin()">Sign In</button>' +
+        '<div class="lp-auth-err" id="lp-err"></div>' +
+      '</div>';
+  }
+  setTimeout(function() {
+    var el = document.getElementById('lp-pass');
+    if (el) el.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('lp-go').click(); } });
+  }, 50);
+}
+
+async function lpDoSignup() {
+  var name = (document.getElementById('lp-name').value || '').trim();
+  var email = (document.getElementById('lp-email').value || '').trim();
+  var pass = document.getElementById('lp-pass').value;
+  var errEl = document.getElementById('lp-err');
+  if (!email || !pass) { errEl.textContent = '> ERROR: EMAIL AND PASSWORD REQUIRED'; return; }
+  if (pass.length < 6) { errEl.textContent = '> ERROR: PASSWORD MIN 6 CHARS'; return; }
+  errEl.textContent = ''; document.getElementById('lp-go').disabled = true;
+  var res = await supa.auth.signUp({ email: email, password: pass, options: { data: { display_name: name || email.split('@')[0] } } });
+  document.getElementById('lp-go').disabled = false;
+  if (res.error) { errEl.textContent = '> ' + res.error.message.toUpperCase(); return; }
+  if (res.data.user && !res.data.session) { errEl.innerHTML = '<span style="color:var(--green)">> CHECK EMAIL TO CONFIRM ACCOUNT</span>'; return; }
+  lpCloseAuth(); window.location.href = '/chat';
+}
+
+async function lpDoSignin() {
+  var email = (document.getElementById('lp-email').value || '').trim();
+  var pass = document.getElementById('lp-pass').value;
+  var errEl = document.getElementById('lp-err');
+  if (!email || !pass) { errEl.textContent = '> ERROR: EMAIL AND PASSWORD REQUIRED'; return; }
+  errEl.textContent = ''; document.getElementById('lp-go').disabled = true;
+  var res = await supa.auth.signInWithPassword({ email: email, password: pass });
+  document.getElementById('lp-go').disabled = false;
+  if (res.error) { errEl.textContent = '> ' + res.error.message.toUpperCase(); return; }
+  lpCloseAuth(); window.location.href = '/chat';
+}
+
+// Check if already logged in on page load — load profile from DB
+(async function() {
+  var res = await supa.auth.getSession();
+  if (res.data.session) {
+    lpUser = res.data.session.user;
+    // Load display name from profiles table
+    var profRes = await supa.from('profiles').select('display_name, avatar_url').eq('id', lpUser.id).single();
+    var name = (profRes.data && profRes.data.display_name) || lpUser.email.split('@')[0];
+    var avHtml;
+    if (profRes.data && profRes.data.avatar_url) {
+      avHtml = '<img src="' + profRes.data.avatar_url + '" style="width:22px;height:22px;border-radius:50%;object-fit:cover" onerror="this.outerHTML=\'<span style=\\\'width:22px;height:22px;border-radius:50%;background:var(--cyan);display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:var(--bg);font-weight:700\\\'>' + name.slice(0,2).toUpperCase() + '</span>\'"/>';
+    } else {
+      avHtml = '<span style="width:22px;height:22px;border-radius:50%;background:var(--cyan);display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:var(--bg);font-weight:700">' + name.slice(0,2).toUpperCase() + '</span>';
+    }
+    document.getElementById('lp-user-area').innerHTML =
+      '<button class="lp-user-btn" onclick="window.location.href=\'/chat\'">' +
+        avHtml + name +
+      '</button>';
+  }
+})();
 </script>
 </body>
 </html>
