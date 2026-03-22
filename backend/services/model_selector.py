@@ -1,64 +1,25 @@
 """
-Model Selector — picks the best available model based on intent.
-Providers: Gemini (Google), Claude (Anthropic), Groq (LLaMA)
-
-Strengths:
-  Claude → code, creative writing, nuanced reasoning
-  Gemini → explanation, summarization, math, general tasks (FREE)
-  Groq   → fast inference, code, conversation (FREE — LLaMA 3.3 70B)
+Model Selector — uses leaderboard benchmark scores to pick the best model.
+Now provides full transparency: WHY this model, with scores and rankings.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from services.leaderboard_scraper import get_rankings_for_intent, get_source
 
 @dataclass
 class ModelChoice:
     model_id: str
-    provider: str         # "gemini" | "claude" | "groq"
+    provider: str
     display_name: str
     reason: str
-
-ROUTING_TABLE: dict[str, list[tuple[str, str, str]]] = {
-    "code_generation": [
-        ("claude-haiku-4-5-20251001", "claude", "Claude Haiku 4.5"),
-        ("gemini-2.5-pro", "gemini", "Gemini 2.5 Pro"),
-        ("llama-3.3-70b-versatile", "groq", "LLaMA 3.3 70B"),
-    ],
-    "code_review": [
-        ("claude-haiku-4-5-20251001", "claude", "Claude Haiku 4.5"),
-        ("llama-3.3-70b-versatile", "groq", "LLaMA 3.3 70B"),
-        ("gemini-2.5-flash", "gemini", "Gemini 2.5 Flash"),
-    ],
-    "explanation": [
-        ("gemini-2.5-flash", "gemini", "Gemini 2.5 Flash"),
-        ("claude-haiku-4-5-20251001", "claude", "Claude Haiku 4.5"),
-        ("llama-3.3-70b-versatile", "groq", "LLaMA 3.3 70B"),
-    ],
-    "creative_writing": [
-        ("claude-haiku-4-5-20251001", "claude", "Claude Haiku 4.5"),
-        ("gemini-2.5-flash", "gemini", "Gemini 2.5 Flash"),
-        ("llama-3.3-70b-versatile", "groq", "LLaMA 3.3 70B"),
-    ],
-    "research": [
-        ("gemini-2.5-pro", "gemini", "Gemini 2.5 Pro"),
-        ("claude-haiku-4-5-20251001", "claude", "Claude Haiku 4.5"),
-        ("llama-3.3-70b-versatile", "groq", "LLaMA 3.3 70B"),
-    ],
-    "math_reasoning": [
-        ("gemini-2.5-pro", "gemini", "Gemini 2.5 Pro"),
-        ("claude-haiku-4-5-20251001", "claude", "Claude Haiku 4.5"),
-        ("llama-3.3-70b-versatile", "groq", "LLaMA 3.3 70B"),
-    ],
-    "summarization": [
-        ("llama-3.3-70b-versatile", "groq", "LLaMA 3.3 70B"),
-        ("gemini-2.5-flash", "gemini", "Gemini 2.5 Flash"),
-        ("claude-haiku-4-5-20251001", "claude", "Claude Haiku 4.5"),
-    ],
-    "conversation": [
-        ("llama-3.3-70b-versatile", "groq", "LLaMA 3.3 70B"),
-        ("gemini-2.5-flash", "gemini", "Gemini 2.5 Flash"),
-        ("claude-haiku-4-5-20251001", "claude", "Claude Haiku 4.5"),
-    ],
-}
+    # Transparency fields
+    intent_score: float = 0.0
+    score_category: str = ""
+    rank: int = 0
+    total_candidates: int = 0
+    all_rankings: list = field(default_factory=list)  # full ranked list for UI
+    selection_method: str = "leaderboard"  # "leaderboard" | "user_override" | "fallback"
+    data_source: str = ""
 
 _limited_providers: set[str] = set()
 
@@ -71,6 +32,7 @@ def mark_available(provider: str):
 def get_limited_providers() -> set[str]:
     return _limited_providers.copy()
 
+
 def select_model(
     intent: str,
     override_provider: str | None = None,
@@ -79,28 +41,69 @@ def select_model(
     if available_providers is None:
         available_providers = {"gemini", "claude", "groq"}
 
-    candidates = ROUTING_TABLE.get(intent, ROUTING_TABLE["conversation"])
+    # Get leaderboard rankings for this intent
+    rankings = get_rankings_for_intent(intent)
+    data_source = get_source()
 
+    # User override — skip rankings, just pick from that provider
     if override_provider:
-        for model_id, provider, display_name in candidates:
-            if provider == override_provider and provider in available_providers:
-                return ModelChoice(model_id=model_id, provider=provider,
-                    display_name=display_name, reason=f"User selected {provider}")
-        for intent_models in ROUTING_TABLE.values():
-            for model_id, provider, display_name in intent_models:
-                if provider == override_provider and provider in available_providers:
-                    return ModelChoice(model_id=model_id, provider=provider,
-                        display_name=display_name, reason=f"User selected {provider}")
+        for entry in rankings:
+            if entry["provider"] == override_provider and override_provider in available_providers:
+                return ModelChoice(
+                    model_id=entry["model_id"],
+                    provider=entry["provider"],
+                    display_name=entry["display_name"],
+                    reason=f"User override → {override_provider}",
+                    intent_score=entry["intent_score"],
+                    score_category=entry["score_category"],
+                    rank=entry["rank"],
+                    total_candidates=len(rankings),
+                    all_rankings=rankings,
+                    selection_method="user_override",
+                    data_source=data_source,
+                )
 
-    for model_id, provider, display_name in candidates:
+    # Auto-selection: pick highest-ranked available, non-limited model
+    for entry in rankings:
+        provider = entry["provider"]
         if provider in available_providers and provider not in _limited_providers:
-            return ModelChoice(model_id=model_id, provider=provider,
-                display_name=display_name, reason=f"Top ranked for {intent}")
+            return ModelChoice(
+                model_id=entry["model_id"],
+                provider=provider,
+                display_name=entry["display_name"],
+                reason=f"Rank #{entry['rank']} for {intent.replace('_', ' ')} "
+                       f"({entry['score_category']}: {entry['intent_score']})",
+                intent_score=entry["intent_score"],
+                score_category=entry["score_category"],
+                rank=entry["rank"],
+                total_candidates=len(rankings),
+                all_rankings=rankings,
+                selection_method="leaderboard",
+                data_source=data_source,
+            )
 
-    for model_id, provider, display_name in candidates:
-        if provider in available_providers:
-            return ModelChoice(model_id=model_id, provider=provider,
-                display_name=display_name, reason="Fallback (other providers rate-limited)")
+    # Everything limited — pick any available
+    for entry in rankings:
+        if entry["provider"] in available_providers:
+            return ModelChoice(
+                model_id=entry["model_id"],
+                provider=entry["provider"],
+                display_name=entry["display_name"],
+                reason="Fallback (other providers rate-limited)",
+                intent_score=entry["intent_score"],
+                score_category=entry["score_category"],
+                rank=entry["rank"],
+                total_candidates=len(rankings),
+                all_rankings=rankings,
+                selection_method="fallback",
+                data_source=data_source,
+            )
 
-    return ModelChoice(model_id="gemini-2.5-flash", provider="gemini",
-        display_name="Gemini 2.5 Flash", reason="Default fallback")
+    return ModelChoice(
+        model_id="gemini-2.5-flash",
+        provider="gemini",
+        display_name="Gemini 2.5 Flash",
+        reason="Default fallback — no models available",
+        selection_method="fallback",
+        data_source=data_source,
+    )

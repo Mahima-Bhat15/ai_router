@@ -1,14 +1,12 @@
 """
-AI Router — Backend Server
-Providers: Gemini (Google, FREE), Claude (Anthropic), Groq (LLaMA, FREE)
-
-Run with: python3 main.py
+AI Router — Backend Server (v0.3)
+Providers: Gemini (FREE), Claude (Anthropic), Groq (FREE)
+Split API: /api/analyze (fast) → animation → /api/generate (LLM call)
 """
 
-import os
-import time
-import pathlib
+import os, time, pathlib
 from contextlib import asynccontextmanager
+from typing import Any
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -30,7 +28,6 @@ groq_client = None
 
 def init_clients():
     global gemini_model, claude_client, groq_client
-
     if GEMINI_KEY and GEMINI_KEY != "your_gemini_key_here":
         try:
             import google.generativeai as genai
@@ -38,9 +35,9 @@ def init_clients():
             gemini_model = genai.GenerativeModel("gemini-2.5-flash")
             print("  ✓ Gemini API connected (free tier)")
         except Exception as e:
-            print(f"  ✗ Gemini init failed: {e}")
+            print(f"  ✗ Gemini: {e}")
     else:
-        print("  - Gemini: no API key configured")
+        print("  - Gemini: no API key")
 
     if ANTHROPIC_KEY and ANTHROPIC_KEY != "your_anthropic_key_here":
         try:
@@ -48,9 +45,9 @@ def init_clients():
             claude_client = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
             print("  ✓ Claude API connected")
         except Exception as e:
-            print(f"  ✗ Claude init failed: {e}")
+            print(f"  ✗ Claude: {e}")
     else:
-        print("  - Claude: no API key configured")
+        print("  - Claude: no API key")
 
     if GROQ_KEY and GROQ_KEY != "your_groq_key_here":
         try:
@@ -58,9 +55,9 @@ def init_clients():
             groq_client = Groq(api_key=GROQ_KEY)
             print("  ✓ Groq API connected (free tier)")
         except Exception as e:
-            print(f"  ✗ Groq init failed: {e}")
+            print(f"  ✗ Groq: {e}")
     else:
-        print("  - Groq: no API key configured")
+        print("  - Groq: no API key")
 
 
 @asynccontextmanager
@@ -68,251 +65,208 @@ async def lifespan(app: FastAPI):
     print("\n🚀 AI Router starting up...")
     init_clients()
     available = get_available_providers()
-    print(f"\n  Available providers: {available or 'NONE — add API keys to .env!'}\n")
+    print(f"\n  Available: {available or 'NONE — add API keys to .env!'}\n")
+    from services.leaderboard_scraper import get_benchmarks
+    await get_benchmarks(force_refresh=True)
     yield
-    print("AI Router shutting down.")
 
-
-app = FastAPI(
-    title="AI Router",
-    description="Intent-based LLM routing: Gemini + Claude + Groq",
-    version="0.1.0",
-    lifespan=lifespan,
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI(title="AI Router", version="0.3.0", lifespan=lifespan)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True,
+                   allow_methods=["*"], allow_headers=["*"])
 
 from services.intent_classifier import classify_intent
-from services.model_selector import (
-    select_model, mark_limited, mark_available, get_limited_providers,
-)
+from services.model_selector import select_model, mark_limited, mark_available, get_limited_providers
 from services.prompt_engineer import reprompt
-
-
-class ChatRequest(BaseModel):
-    prompt: str
-    override_provider: str | None = None  # "gemini", "claude", "groq"
-
-class ChatResponse(BaseModel):
-    response: str
-    intent: str
-    intent_confidence: float
-    model_used: str
-    provider: str
-    model_display_name: str
-    selection_reason: str
-    original_prompt: str
-    reprompted_prompt: str
-    latency_ms: int
-
-class IntentRequest(BaseModel):
-    prompt: str
-
-class IntentResponse(BaseModel):
-    intent: str
-    confidence: float
-
-class HealthResponse(BaseModel):
-    status: str
-    providers: dict[str, bool]
-    limited_providers: list[str]
-
+from services.leaderboard_scraper import get_benchmarks, get_full_leaderboard
 
 def get_available_providers() -> set[str]:
-    providers = set()
-    if gemini_model:
-        providers.add("gemini")
-    if claude_client:
-        providers.add("claude")
-    if groq_client:
-        providers.add("groq")
-    return providers
+    p = set()
+    if gemini_model: p.add("gemini")
+    if claude_client: p.add("claude")
+    if groq_client: p.add("groq")
+    return p
 
 
-# --- Provider call functions ---
-async def call_gemini(prompt: str, model_id: str) -> str:
-    if not gemini_model:
-        raise HTTPException(status_code=503, detail="Gemini not configured")
-    try:
-        import google.generativeai as genai
-        model = genai.GenerativeModel(model_id)
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        error_msg = str(e).lower()
-        if "429" in error_msg or "quota" in error_msg or "rate" in error_msg:
-            mark_limited("gemini")
-            raise HTTPException(status_code=429, detail=f"Gemini rate limited: {e}")
-        raise HTTPException(status_code=500, detail=f"Gemini error: {e}")
+# --- STEP 1: Analyze (fast — no LLM call) ---
+class AnalyzeRequest(BaseModel):
+    prompt: str
+    override_provider: str | None = None
 
+class AnalyzeResponse(BaseModel):
+    intent: str
+    intent_confidence: float
+    selected_model_id: str
+    selected_provider: str
+    selected_display_name: str
+    selection_reason: str
+    selection_method: str
+    intent_score: float
+    score_category: str
+    benchmark_name: str
+    rank: int
+    total_candidates: int
+    all_rankings: list[Any]
+    data_source: str
+    source_url: str
+    reprompted_prompt: str
 
-async def call_claude(prompt: str, model_id: str) -> str:
-    if not claude_client:
-        raise HTTPException(status_code=503, detail="Claude not configured")
-    try:
-        response = claude_client.messages.create(
-            model=model_id,
-            max_tokens=4096,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return response.content[0].text
-    except Exception as e:
-        error_msg = str(e).lower()
-        if "429" in error_msg or "rate" in error_msg:
-            mark_limited("claude")
-            raise HTTPException(status_code=429, detail=f"Claude rate limited: {e}")
-        raise HTTPException(status_code=500, detail=f"Claude error: {e}")
-
-
-async def call_groq(prompt: str, model_id: str) -> str:
-    if not groq_client:
-        raise HTTPException(status_code=503, detail="Groq not configured")
-    try:
-        response = groq_client.chat.completions.create(
-            model=model_id,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=4096,
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        error_msg = str(e).lower()
-        if "429" in error_msg or "rate" in error_msg:
-            mark_limited("groq")
-            raise HTTPException(status_code=429, detail=f"Groq rate limited: {e}")
-        raise HTTPException(status_code=500, detail=f"Groq error: {e}")
-
-
-PROVIDER_CALLERS = {
-    "gemini": call_gemini,
-    "claude": call_claude,
-    "groq": call_groq,
-}
-
-
-# --- API Endpoints ---
-@app.get("/health", response_model=HealthResponse)
-async def health_check():
+@app.post("/api/analyze", response_model=AnalyzeResponse)
+async def analyze(req: AnalyzeRequest):
+    """Step 1: Classify intent + select model + reprompt. No LLM call — instant."""
     available = get_available_providers()
-    return HealthResponse(
-        status="ok",
-        providers={
-            "gemini": "gemini" in available,
-            "claude": "claude" in available,
-            "groq": "groq" in available,
-        },
-        limited_providers=list(get_limited_providers()),
+    if not available:
+        raise HTTPException(503, "No providers configured")
+
+    intent_result = classify_intent(req.prompt)
+    model_choice = select_model(intent=intent_result.intent,
+        override_provider=req.override_provider, available_providers=available)
+    optimized = reprompt(req.prompt, model_choice.provider, intent_result.intent)
+
+    # Get benchmark name from rankings
+    benchmark_name = ""
+    if model_choice.all_rankings:
+        benchmark_name = model_choice.all_rankings[0].get("benchmark_name", "")
+
+    return AnalyzeResponse(
+        intent=intent_result.intent,
+        intent_confidence=intent_result.confidence,
+        selected_model_id=model_choice.model_id,
+        selected_provider=model_choice.provider,
+        selected_display_name=model_choice.display_name,
+        selection_reason=model_choice.reason,
+        selection_method=model_choice.selection_method,
+        intent_score=model_choice.intent_score,
+        score_category=model_choice.score_category,
+        benchmark_name=benchmark_name,
+        rank=model_choice.rank,
+        total_candidates=model_choice.total_candidates,
+        all_rankings=model_choice.all_rankings,
+        data_source=model_choice.data_source,
+        source_url="https://vellum.ai/llm-leaderboard",
+        reprompted_prompt=optimized,
     )
 
 
-@app.post("/api/classify", response_model=IntentResponse)
-async def classify(req: IntentRequest):
-    result = classify_intent(req.prompt)
-    return IntentResponse(intent=result.intent, confidence=result.confidence)
+# --- STEP 2: Generate (calls the LLM) ---
+class GenerateRequest(BaseModel):
+    reprompted_prompt: str
+    provider: str
+    model_id: str
+    original_prompt: str  # for failover reprompting
+    intent: str
 
+class GenerateResponse(BaseModel):
+    response: str
+    provider: str
+    model_id: str
+    model_display_name: str
+    latency_ms: int
+    failover_from: str | None = None
 
-@app.post("/api/chat", response_model=ChatResponse)
-async def chat(req: ChatRequest):
+async def call_gemini(prompt: str, model_id: str) -> str:
+    if not gemini_model: raise HTTPException(503, "Gemini not configured")
+    try:
+        import google.generativeai as genai
+        return genai.GenerativeModel(model_id).generate_content(prompt).text
+    except Exception as e:
+        if any(k in str(e).lower() for k in ["429","quota","rate"]):
+            mark_limited("gemini"); raise HTTPException(429, f"Gemini rate limited")
+        raise HTTPException(500, f"Gemini error: {e}")
+
+async def call_claude(prompt: str, model_id: str) -> str:
+    if not claude_client: raise HTTPException(503, "Claude not configured")
+    try:
+        r = claude_client.messages.create(model=model_id, max_tokens=4096,
+            messages=[{"role":"user","content":prompt}])
+        return r.content[0].text
+    except Exception as e:
+        if any(k in str(e).lower() for k in ["429","rate"]):
+            mark_limited("claude"); raise HTTPException(429, f"Claude rate limited")
+        raise HTTPException(500, f"Claude error: {e}")
+
+async def call_groq(prompt: str, model_id: str) -> str:
+    if not groq_client: raise HTTPException(503, "Groq not configured")
+    try:
+        r = groq_client.chat.completions.create(model=model_id,
+            messages=[{"role":"user","content":prompt}], temperature=0.7, max_tokens=4096)
+        return r.choices[0].message.content
+    except Exception as e:
+        if any(k in str(e).lower() for k in ["429","rate"]):
+            mark_limited("groq"); raise HTTPException(429, f"Groq rate limited")
+        raise HTTPException(500, f"Groq error: {e}")
+
+CALLERS = {"gemini": call_gemini, "claude": call_claude, "groq": call_groq}
+DISPLAY_NAMES = {"claude-haiku-4-5-20251001":"Claude Haiku 4.5","gemini-2.5-pro":"Gemini 2.5 Pro",
+    "gemini-2.5-flash":"Gemini 2.5 Flash","gemini-2.5-flash-lite":"Gemini 2.5 Flash-Lite",
+    "llama-3.3-70b-versatile":"LLaMA 3.3 70B (Groq)"}
+
+@app.post("/api/generate", response_model=GenerateResponse)
+async def generate(req: GenerateRequest):
+    """Step 2: Actually call the LLM. Called after the animation finishes."""
     start = time.time()
     available = get_available_providers()
 
-    if not available:
-        raise HTTPException(
-            status_code=503,
-            detail="No API providers configured. Add API keys to your .env file.",
-        )
+    caller = CALLERS.get(req.provider)
+    failover_from = None
+    provider = req.provider
+    model_id = req.model_id
+    prompt = req.reprompted_prompt
 
-    # 1. Classify intent
-    intent_result = classify_intent(req.prompt)
-
-    # 2. Select model
-    model_choice = select_model(
-        intent=intent_result.intent,
-        override_provider=req.override_provider,
-        available_providers=available,
-    )
-
-    # 3. Re-prompt
-    optimized_prompt = reprompt(
-        original_prompt=req.prompt,
-        provider=model_choice.provider,
-        intent=intent_result.intent,
-    )
-
-    # 4. Call provider with auto-failover
-    response_text = None
-    final_model = model_choice
-    tried_providers = set()
-
-    while response_text is None:
-        tried_providers.add(final_model.provider)
-        caller = PROVIDER_CALLERS.get(final_model.provider)
-        if not caller:
-            break
-
-        try:
-            response_text = await caller(optimized_prompt, final_model.model_id)
-        except HTTPException as e:
-            if e.status_code == 429:
-                remaining = available - tried_providers - get_limited_providers()
-                if remaining:
-                    final_model = select_model(
-                        intent=intent_result.intent,
-                        available_providers=remaining,
-                    )
-                    optimized_prompt = reprompt(
-                        original_prompt=req.prompt,
-                        provider=final_model.provider,
-                        intent=intent_result.intent,
-                    )
-                else:
-                    raise HTTPException(
-                        status_code=429,
-                        detail="All providers rate-limited. Try again in a few minutes.",
-                    )
+    try:
+        response_text = await caller(prompt, model_id)
+    except HTTPException as e:
+        if e.status_code == 429:
+            # Failover
+            remaining = available - {req.provider} - get_limited_providers()
+            if remaining:
+                fb = select_model(intent=req.intent, available_providers=remaining)
+                failover_from = req.provider
+                provider = fb.provider
+                model_id = fb.model_id
+                prompt = reprompt(req.original_prompt, fb.provider, req.intent)
+                response_text = await CALLERS[fb.provider](prompt, fb.model_id)
             else:
-                raise
+                raise HTTPException(429, "All providers rate-limited")
+        else:
+            raise
 
-    if response_text is None:
-        raise HTTPException(status_code=500, detail="Failed to get response from any provider.")
-
-    latency = int((time.time() - start) * 1000)
-
-    return ChatResponse(
+    return GenerateResponse(
         response=response_text,
-        intent=intent_result.intent,
-        intent_confidence=intent_result.confidence,
-        model_used=final_model.model_id,
-        provider=final_model.provider,
-        model_display_name=final_model.display_name,
-        selection_reason=final_model.reason,
-        original_prompt=req.prompt,
-        reprompted_prompt=optimized_prompt,
-        latency_ms=latency,
+        provider=provider,
+        model_id=model_id,
+        model_display_name=DISPLAY_NAMES.get(model_id, model_id),
+        latency_ms=int((time.time()-start)*1000),
+        failover_from=failover_from,
     )
 
+
+# --- Other endpoints ---
+@app.get("/health")
+async def health():
+    a = get_available_providers()
+    return {"status":"ok","providers":{"gemini":"gemini" in a,"claude":"claude" in a,"groq":"groq" in a},
+            "limited":list(get_limited_providers())}
+
+@app.get("/api/leaderboard")
+async def leaderboard():
+    return get_full_leaderboard(await get_benchmarks())
+
+@app.post("/api/leaderboard/refresh")
+async def refresh_lb():
+    lb = get_full_leaderboard(await get_benchmarks(force_refresh=True))
+    return {"status":"refreshed","source":lb["source"]}
 
 @app.post("/api/quota/reset/{provider}")
 async def reset_quota(provider: str):
     mark_available(provider)
-    return {"status": "ok", "message": f"{provider} marked as available"}
+    return {"ok": True}
 
-
-# --- Serve frontend ---
 FRONTEND_DIR = pathlib.Path(__file__).parent.parent / "frontend"
 if FRONTEND_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
-
     @app.get("/")
     async def serve_frontend():
         return FileResponse(str(FRONTEND_DIR / "index.html"))
-
 
 if __name__ == "__main__":
     import uvicorn
