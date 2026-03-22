@@ -330,6 +330,11 @@ if FRONTEND_DIR.exists():
         landing = FRONTEND_DIR / "tap.html"
         if landing.exists(): return FileResponse(str(landing))
         return FileResponse(str(FRONTEND_DIR / "index.html"))
+    @app.get("/tap")
+    async def serve_tap():
+        landing = FRONTEND_DIR / "tap.html"
+        if landing.exists(): return FileResponse(str(landing))
+        return FileResponse(str(FRONTEND_DIR / "index.html"))
     @app.get("/chat")
     async def serve_chat():
         return FileResponse(str(FRONTEND_DIR / "index.html"))
