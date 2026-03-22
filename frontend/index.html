@@ -267,17 +267,51 @@ body{font-family:'Roboto',sans-serif;background:var(--bg);color:var(--text);heig
 
 <script>
 // ═══════════════════════════════════════════════════════════
-// SUPABASE CONFIG — Replace with your project values
+// SUPABASE — initialized from backend config (keys in .env)
 // ═══════════════════════════════════════════════════════════
-const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
-const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 const API='http://localhost:8000';
+let supa=null; // initialized async after config fetch
+
 const cv=document.getElementById('cv'),pi=document.getElementById('pi'),sb=document.getElementById('sb');
 let busy=false;
-let currentUser=null;   // auth.users object (id, email, etc.)
-let userProfile=null;   // profiles table row (display_name, avatar_url, bio)
+let currentUser=null;   // auth.users object
+let userProfile=null;   // profiles table row
+let authReady=false;     // prevents double-init
+
+// Proper UUID generator (matches Supabase uuid column)
+function uid(){return crypto.randomUUID();}
+function todayStr(){return new Date().toLocaleDateString([],{month:"short",day:"numeric"});}
+
+// Boot everything — fetch Supabase config from backend, then init auth
+(async function boot(){
+  try{
+    var r=await fetch(API+'/api/supabase-config');
+    if(!r.ok) throw new Error('Backend returned '+r.status);
+    var cfg=await r.json();
+    supa=window.supabase.createClient(cfg.url,cfg.anon_key);
+  }catch(e){
+    console.error('Supabase config failed:',e);
+    // Continue without auth — user can still view the UI
+    renderUserArea();renderLoginGate();renderChatList();
+    cv.innerHTML=renderWelcome();
+    return;
+  }
+
+  // Listen for auth state changes (handles token refresh, tab focus, etc.)
+  supa.auth.onAuthStateChange(function(event,session){
+    if(!authReady)return; // skip the initial fire — we handle it below
+    onAuthChange(session);
+  });
+
+  // Check existing session
+  var res=await supa.auth.getSession();
+  if(res.data.session){
+    await onAuthChange(res.data.session);
+  }else{
+    renderUserArea();renderLoginGate();
+  }
+  authReady=true; // now allow onAuthStateChange to fire
+})();
 
 // ═══════════════════════════════════════════════════════════
 // AUTH — Signup / Signin / Session
@@ -328,6 +362,7 @@ function renderAuthForm(tab){
   },50);
 }
 async function doSignup(){
+  if(!supa){alert('Connecting to auth service...');return;}
   var name=(document.getElementById('auth-name').value||'').trim();
   var email=(document.getElementById('auth-email').value||'').trim();
   var pass=document.getElementById('auth-pass').value;
@@ -344,6 +379,7 @@ async function doSignup(){
   await onAuthChange(res.data.session);
 }
 async function doSignin(){
+  if(!supa){alert('Connecting to auth service...');return;}
   var email=(document.getElementById('auth-email').value||'').trim();
   var pass=document.getElementById('auth-pass').value;
   var errEl=document.getElementById('auth-err');
@@ -356,7 +392,7 @@ async function doSignin(){
   await onAuthChange(res.data.session);
 }
 async function doSignout(){
-  await supa.auth.signOut();
+  if(supa) await supa.auth.signOut();
   currentUser=null;userProfile=null;
   chats=[{id:uid(),title:'New conversation',date:todayStr(),html:''}];
   activeChatId=chats[0].id;
@@ -367,7 +403,7 @@ async function doSignout(){
 // PROFILE — reads/writes from public.profiles table
 // ═══════════════════════════════════════════════════════════
 async function loadProfile(){
-  if(!currentUser)return;
+  if(!currentUser||!supa)return;
   var res=await supa.from('profiles').select('*').eq('id',currentUser.id).single();
   if(res.error){
     console.error('Load profile error:',res.error);
@@ -403,6 +439,7 @@ function showProfileModal(){
 }
 function closeProfileModal(){document.getElementById('profile-modal').innerHTML='';}
 async function saveProfile(){
+  if(!supa||!currentUser)return;
   var name=(document.getElementById('prof-name').value||'').trim();
   var bio=(document.getElementById('prof-bio').value||'').trim();
   var avatar=(document.getElementById('prof-avatar').value||'').trim();
@@ -465,7 +502,7 @@ function renderLoginGate(){
 // SUPABASE CHAT PERSISTENCE
 // ═══════════════════════════════════════════════════════════
 async function loadChatsFromDB(){
-  if(!currentUser)return;
+  if(!currentUser||!supa)return;
   var res=await supa.from('chats').select('*').eq('user_id',currentUser.id).order('updated_at',{ascending:false});
   if(res.error){console.error('Load chats error:',res.error);return;}
   if(res.data.length){
@@ -481,12 +518,12 @@ async function loadChatsFromDB(){
   renderChatList();
 }
 async function saveChatToDB(c){
-  if(!currentUser)return;
+  if(!currentUser||!supa)return;
   var res=await supa.from('chats').upsert({id:c.id,user_id:currentUser.id,title:c.title,chat_date:c.date,html:c.html,updated_at:new Date().toISOString()},{onConflict:'id'});
   if(res.error)console.error('Save chat error:',res.error);
 }
 async function deleteChatFromDB(id){
-  if(!currentUser)return;
+  if(!currentUser||!supa)return;
   await supa.from('chats').delete().eq('id',id).eq('user_id',currentUser.id);
 }
 
@@ -510,19 +547,7 @@ async function onAuthChange(session){
   }
 }
 
-supa.auth.onAuthStateChange(function(event,session){
-  onAuthChange(session);
-});
-
-// Check existing session on load
-(async function(){
-  var res=await supa.auth.getSession();
-  if(res.data.session){
-    await onAuthChange(res.data.session);
-  }else{
-    renderUserArea();renderLoginGate();
-  }
-})();
+// (Auth state listener and session check are in boot() above)
 
 // ═══════════════════════════════════════════════════════════
 // PROVIDERS & MODELS (unchanged)
@@ -562,8 +587,6 @@ function vcolor(v){return VC[v]||VC.generic;}
 // ═══════════════════════════════════════════════════════════
 // CHAT STATE
 // ═══════════════════════════════════════════════════════════
-function uid(){return Math.random().toString(36).slice(2,10);}
-function todayStr(){return new Date().toLocaleDateString([],{month:"short",day:"numeric"});}
 var firstId=uid();
 var chats=[{id:firstId,title:"New conversation",date:todayStr(),html:""}];
 var activeChatId=firstId;

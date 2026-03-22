@@ -449,6 +449,16 @@ async def refresh_lb():
 async def reset_quota(provider: str):
     mark_available(provider); return {"ok": True}
 
+# ─── Supabase config (served to frontend, keys from .env) ─────────────────────
+@app.get("/api/supabase-config")
+async def supabase_config():
+    """Return Supabase URL and anon key for frontend auth initialization."""
+    url = os.getenv("SUPABASE_URL", "")
+    key = os.getenv("SUPABASE_ANON_KEY", "")
+    if not url or not key:
+        raise HTTPException(503, "Supabase not configured — add SUPABASE_URL and SUPABASE_ANON_KEY to .env")
+    return {"url": url, "anon_key": key}
+
 FRONTEND_DIR = pathlib.Path(__file__).parent.parent / "frontend"
 if FRONTEND_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")

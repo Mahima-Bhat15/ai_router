@@ -815,10 +815,34 @@ runIntro();
 // ═══════════════════════════════════
 // SUPABASE AUTH FOR LANDING PAGE
 // ═══════════════════════════════════
-const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
-const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const LP_API = 'http://localhost:8000';
+let supa = null;
 let lpUser = null;
+
+// Fetch Supabase config from backend and initialize
+(async function initSupabase() {
+  try {
+    var r = await fetch(LP_API + '/api/supabase-config');
+    if (!r.ok) return;
+    var cfg = await r.json();
+    supa = window.supabase.createClient(cfg.url, cfg.anon_key);
+    // Check existing session
+    var res = await supa.auth.getSession();
+    if (res.data.session) {
+      lpUser = res.data.session.user;
+      var profRes = await supa.from('profiles').select('display_name, avatar_url').eq('id', lpUser.id).single();
+      var name = (profRes.data && profRes.data.display_name) || lpUser.email.split('@')[0];
+      var avHtml;
+      if (profRes.data && profRes.data.avatar_url) {
+        avHtml = '<img src="' + profRes.data.avatar_url + '" style="width:22px;height:22px;border-radius:50%;object-fit:cover" onerror="this.style.display=\'none\'"/>';
+      } else {
+        avHtml = '<span style="width:22px;height:22px;border-radius:50%;background:var(--cyan);display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:var(--bg);font-weight:700">' + name.slice(0,2).toUpperCase() + '</span>';
+      }
+      document.getElementById('lp-user-area').innerHTML =
+        '<button class="lp-user-btn" onclick="window.location.href=\'/chat\'">' + avHtml + name + '</button>';
+    }
+  } catch(e) { console.error('Supabase init failed:', e); }
+})();
 
 function launchTap() {
   // Show auth modal if not logged in, else go straight to chat
@@ -881,6 +905,7 @@ function lpRenderForm(tab) {
 }
 
 async function lpDoSignup() {
+  if (!supa) { alert('Auth service loading...'); return; }
   var name = (document.getElementById('lp-name').value || '').trim();
   var email = (document.getElementById('lp-email').value || '').trim();
   var pass = document.getElementById('lp-pass').value;
@@ -896,6 +921,7 @@ async function lpDoSignup() {
 }
 
 async function lpDoSignin() {
+  if (!supa) { alert('Auth service loading...'); return; }
   var email = (document.getElementById('lp-email').value || '').trim();
   var pass = document.getElementById('lp-pass').value;
   var errEl = document.getElementById('lp-err');
@@ -907,26 +933,7 @@ async function lpDoSignin() {
   lpCloseAuth(); window.location.href = '/chat';
 }
 
-// Check if already logged in on page load — load profile from DB
-(async function() {
-  var res = await supa.auth.getSession();
-  if (res.data.session) {
-    lpUser = res.data.session.user;
-    // Load display name from profiles table
-    var profRes = await supa.from('profiles').select('display_name, avatar_url').eq('id', lpUser.id).single();
-    var name = (profRes.data && profRes.data.display_name) || lpUser.email.split('@')[0];
-    var avHtml;
-    if (profRes.data && profRes.data.avatar_url) {
-      avHtml = '<img src="' + profRes.data.avatar_url + '" style="width:22px;height:22px;border-radius:50%;object-fit:cover" onerror="this.outerHTML=\'<span style=\\\'width:22px;height:22px;border-radius:50%;background:var(--cyan);display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:var(--bg);font-weight:700\\\'>' + name.slice(0,2).toUpperCase() + '</span>\'"/>';
-    } else {
-      avHtml = '<span style="width:22px;height:22px;border-radius:50%;background:var(--cyan);display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:var(--bg);font-weight:700">' + name.slice(0,2).toUpperCase() + '</span>';
-    }
-    document.getElementById('lp-user-area').innerHTML =
-      '<button class="lp-user-btn" onclick="window.location.href=\'/chat\'">' +
-        avHtml + name +
-      '</button>';
-  }
-})();
+// (Session check handled in initSupabase() above)
 </script>
 </body>
 </html>
