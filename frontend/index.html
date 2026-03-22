@@ -359,9 +359,11 @@ async function doSignin(){
 async function doSignout(){
   await supa.auth.signOut();
   currentUser=null;userProfile=null;
+  userKeys={gemini:'',claude:'',groq:'',openrouter:''};
+  keyStatus={gemini:false,claude:false,groq:false,openrouter:false};
   chats=[{id:uid(),title:'New conversation',date:todayStr(),html:''}];
   activeChatId=chats[0].id;
-  cv.innerHTML=renderWelcome();renderChatList();renderUserArea();renderLoginGate();
+  cv.innerHTML=renderWelcome();renderChatList();renderUserArea();renderLoginGate();renderKeysPanel();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -501,10 +503,14 @@ async function onAuthChange(session){
   if(session&&session.user){
     currentUser=session.user;
     await loadProfile();
+    await loadUserKeys();
     renderUserArea();renderLoginGate();
     await loadChatsFromDB();
   }else{
     currentUser=null;userProfile=null;
+    userKeys={gemini:'',claude:'',groq:'',openrouter:''};
+    keyStatus={gemini:false,claude:false,groq:false,openrouter:false};
+    renderKeysPanel();
     chats=[{id:uid(),title:'New conversation',date:todayStr(),html:''}];
     activeChatId=chats[0].id;
     cv.innerHTML=renderWelcome();renderChatList();renderUserArea();renderLoginGate();
@@ -557,6 +563,8 @@ const PROVIDERS_DEF=[
 const ALL_MODELS={};PROVIDERS_DEF.forEach(function(p){p.models.forEach(function(m){ALL_MODELS[m.key]=Object.assign({},m,{provider:p.key});});});
 let currentOverride="",currentModelKey="";
 let keyStatus={gemini:false,claude:false,groq:false,openrouter:false};
+// Per-user API keys — loaded from Supabase, sent with every API call
+var userKeys={gemini:'',claude:'',groq:'',openrouter:''};
 const VC={anthropic:'#D97757',google:'#4285F4',meta:'#0668E1',deepseek:'#536DFE',mistral:'#FF7000',qwen:'#6F42C1',groq:'#F0A500',openrouter:'#9a9890',generic:'#888'};
 function vcolor(v){return VC[v]||VC.generic;}
 
@@ -618,9 +626,47 @@ function renderKeysPanel(){
     return '<div class="provider-key"><div class="prov-label-row"><div class="prov-name" style="color:'+p.color+'">'+p.name+'</div><span class="prov-status '+sc+'">'+st+'</span></div>'+inner+'<div class="key-hint">'+p.keyHint+(p.free?' (free)':'')+'</div></div>';
   }).join('');
 }
-async function saveKey(pk){var inp=document.getElementById('kinp-'+pk);if(!inp)return;var val=inp.value.trim();if(!val)return;try{var r=await fetch(API+'/api/keys/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider:pk,key:val})});if(!r.ok)throw new Error('Failed');keyStatus[pk]=true;renderKeysPanel();}catch(e){alert('Error: '+e.message);}}
-async function clearKey(pk){try{var r=await fetch(API+'/api/keys/clear/'+pk,{method:'POST'});if(!r.ok)throw new Error('Failed');keyStatus[pk]=false;if(currentModelKey){var m=ALL_MODELS[currentModelKey];if(m&&m.provider===pk){currentModelKey='';currentOverride='';updatePickerBtn();}}else if(currentOverride===pk){currentOverride='';updatePickerBtn();}renderKeysPanel();}catch(e){alert('Error: '+e.message);}}
-(async function(){try{var r=await fetch(API+'/api/keys/status');if(r.ok){keyStatus=await r.json();renderKeysPanel();}}catch(e){}})();
+async function saveKey(pk){
+  var inp=document.getElementById('kinp-'+pk);if(!inp)return;var val=inp.value.trim();if(!val)return;
+  userKeys[pk]=val;keyStatus[pk]=true;renderKeysPanel();
+  if(currentUser&&supa){
+    var upd={};upd[pk]=val;
+    await supa.from('user_api_keys').update(upd).eq('user_id',currentUser.id);
+  }
+}
+async function clearKey(pk){
+  userKeys[pk]='';keyStatus[pk]=false;
+  if(currentModelKey){var m=ALL_MODELS[currentModelKey];if(m&&m.provider===pk){currentModelKey='';currentOverride='';updatePickerBtn();}}
+  else if(currentOverride===pk){currentOverride='';updatePickerBtn();}
+  renderKeysPanel();
+  if(currentUser&&supa){
+    var upd={};upd[pk]='';
+    await supa.from('user_api_keys').update(upd).eq('user_id',currentUser.id);
+  }
+}
+async function loadUserKeys(){
+  if(!currentUser||!supa)return;
+  var res=await supa.from('user_api_keys').select('gemini,claude,groq,openrouter').eq('user_id',currentUser.id).single();
+  if(res.error){
+    console.error('Load keys error:',res.error);
+    // Row might not exist yet (race with trigger), create it
+    if(res.error.code==='PGRST116'){
+      await supa.from('user_api_keys').insert({user_id:currentUser.id});
+    }
+    return;
+  }
+  if(res.data){
+    userKeys.gemini=res.data.gemini||'';
+    userKeys.claude=res.data.claude||'';
+    userKeys.groq=res.data.groq||'';
+    userKeys.openrouter=res.data.openrouter||'';
+    keyStatus.gemini=!!userKeys.gemini;
+    keyStatus.claude=!!userKeys.claude;
+    keyStatus.groq=!!userKeys.groq;
+    keyStatus.openrouter=!!userKeys.openrouter;
+    renderKeysPanel();
+  }
+}
 
 // ═══════════════════════════════════════════════════════════
 // MODEL PICKER (unchanged)
@@ -674,11 +720,11 @@ async function sendPrompt(prompt){
   try{
     el.innerHTML='<div class="sa" id="sa-'+id+'"><div class="ph"><div class="sp"></div> Analyzing prompt...</div><div class="slots" id="sl-'+id+'"></div></div>';cv.scrollTop=cv.scrollHeight;
     var mo=null;if(currentModelKey&&ALL_MODELS[currentModelKey])mo=ALL_MODELS[currentModelKey].id;
-    var aR=await fetch(API+'/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,override_provider:mo?null:(currentOverride||null),override_model_id:mo})});
+    var aR=await fetch(API+'/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,api_keys:userKeys,override_provider:mo?null:(currentOverride||null),override_model_id:mo})});
     if(!aR.ok)throw new Error((await aR.json()).detail||'Analyze failed');var a=await aR.json();
     await animSel(id,a);
     var sa=document.getElementById('sa-'+id),ph=sa.querySelector('.ph');ph.innerHTML='<div class="sp"></div> <span style="color:'+vcolor(a.selected_vendor)+'">'+a.selected_display_name+'</span> is generating...';cv.scrollTop=cv.scrollHeight;
-    var gR=await fetch(API+'/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reprompted_prompt:a.reprompted_prompt,provider:a.selected_provider,model_id:a.selected_model_id,original_prompt:prompt,intent:a.intent})});
+    var gR=await fetch(API+'/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reprompted_prompt:a.reprompted_prompt,provider:a.selected_provider,model_id:a.selected_model_id,original_prompt:prompt,intent:a.intent,api_keys:userKeys})});
     if(!gR.ok)throw new Error((await gR.json()).detail||'Generate failed');var g=await gR.json();var rpId='rp'+Date.now(),mc=vcolor(g.vendor||a.selected_vendor);
     lastPrompts.push({prompt:prompt,msgId:id});
     el.innerHTML='<div class="trans"><span class="bdg intent">'+a.intent.replace(/_/g,' ')+'</span><span style="color:var(--text3);font-size:9px">→ '+a.benchmark_name+' →</span><span class="bdg model" style="background:'+mc+'20;color:'+mc+'">'+g.model_display_name+'</span><span class="bdg score">#'+a.rank+'/'+a.total_candidates+' · '+a.intent_score+'</span><span class="bdg time">'+g.latency_ms+'ms</span><span class="bdg std">'+a.prompt_standard+'</span>'+(g.failover_from?'<span class="bdg" style="background:rgba(255,107,107,.1);color:var(--red)">failover from '+g.failover_from+'</span>':'')+'<button class="tgl" onclick="document.getElementById(\''+rpId+'\').classList.toggle(\'show\')">▸ optimized prompt</button><div class="rp" id="'+rpId+'">'+cleanPrompt(a.reprompted_prompt)+'</div></div><div class="bbot">'+fmt(esc(g.response))+'</div><div class="msg-actions" style="opacity:1;margin-top:6px"><button class="msg-act-btn retry-btn" onclick="retryFromMsg(\''+id+'\')">↻ Retry</button></div>';
