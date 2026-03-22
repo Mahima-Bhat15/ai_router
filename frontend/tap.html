@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230c0c0c'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='18' fill='%236c63ff'%3ETAP%3C/text%3E%3C/svg%3E"/>
 <title>TAP — Translate. Adapt. Precision.</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
 <style>
   :root {
     --cyan: #6c63ff;
@@ -28,7 +29,7 @@
   html { scroll-behavior:smooth; }
   body {
     background:var(--bg); color:var(--white);
-    font-family:'Share Tech Mono',monospace;
+    font-family:'Roboto',sans-serif;
     overflow-x:hidden; min-height:100vh; cursor:crosshair;
   }
   body::after {
@@ -48,6 +49,41 @@
     background-size:50px 50px;
   }
 
+  /* ═══ PERSISTENT HEADER ═══ */
+  .top-header {
+    position:fixed; top:0; left:0; right:0; z-index:200;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 40px;
+    background:rgba(12,12,12,0.85); backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+  }
+  .top-header-logo {
+    font-family:'Roboto',sans-serif; font-weight:900; font-size:22px;
+    color:var(--cyan); letter-spacing:4px; cursor:pointer;
+    text-shadow:0 0 14px var(--cyan-glow);
+  }
+  .top-header-right { display:flex; align-items:center; gap:12px; }
+  .top-header-btn {
+    font-family:'Roboto',sans-serif; font-size:13px; font-weight:500;
+    letter-spacing:1px; padding:8px 22px; border-radius:6px;
+    cursor:pointer; transition:all 0.2s; text-decoration:none;
+    text-transform:uppercase;
+  }
+  .top-header-btn.ghost {
+    background:transparent; border:1px solid var(--grey);
+    color:var(--grey2);
+  }
+  .top-header-btn.ghost:hover { border-color:var(--cyan); color:var(--cyan); }
+  .top-header-btn.primary {
+    background:var(--cyan); border:1px solid var(--cyan);
+    color:var(--bg); font-weight:700;
+  }
+  .top-header-btn.primary:hover { box-shadow:0 0 20px var(--cyan-glow); transform:translateY(-1px); }
+  @media(max-width:500px){
+    .top-header{padding:12px 18px;}
+    .top-header-btn{padding:6px 14px;font-size:11px;}
+  }
+
   /* ═══ INTRO ═══ */
   #intro {
     position:fixed; inset:0; z-index:100;
@@ -62,7 +98,7 @@
   #boot-text {
     position:absolute; top:8%; left:50%; transform:translateX(-50%);
     z-index:2; text-align:left; width:min(640px,90vw);
-    font-family:'Share Tech Mono',monospace;
+    font-family:'Roboto',sans-serif;
     font-size:clamp(9px,1.1vw,12px); color:var(--cyan-dim);
     line-height:2; letter-spacing:1px;
   }
@@ -76,7 +112,7 @@
 
   /* ── INTRO PHASES ── */
   /* All T, A, P letters share the same font size throughout every phase */
-  :root { --tap-size: clamp(100px,20vw,280px); }
+  :root { --tap-size: clamp(80px,15vw,200px); }
 
   .phase-words {
     position:absolute; z-index:3;
@@ -91,7 +127,7 @@
   }
   /* The big letter — same size as final TAP word */
   .word-letter {
-    font-family:'Bebas Neue',sans-serif;
+    font-family:'Roboto',sans-serif;font-weight:900;
     font-size: var(--tap-size);
     color:var(--cyan);
     text-shadow:0 0 30px var(--cyan-glow),0 0 80px rgba(108,99,255,0.15);
@@ -101,7 +137,7 @@
   /* The tail (ranslate, dapt, recision) */
   .word-rest {
     font-family:'Rajdhani',sans-serif;
-    font-size:clamp(18px,3.2vw,52px);
+    font-size:clamp(14px,2.4vw,38px);
     font-weight:300; letter-spacing:4px; color:var(--white);
     text-transform:uppercase; line-height:1; opacity:0.75;
     display:inline-block; overflow:hidden; white-space:nowrap;
@@ -113,8 +149,8 @@
   }
   /* Separator dots */
   .word-sep {
-    font-family:'Share Tech Mono',monospace;
-    font-size:clamp(16px,2.5vw,36px); color:var(--cyan-dim);
+    font-family:'Roboto',sans-serif;font-weight:500;
+    font-size:clamp(12px,2vw,28px); color:var(--cyan-dim);
     opacity:0.35; display:inline-block;
     margin:0 clamp(16px,2.5vw,44px);
     transition: opacity 0.5s ease,
@@ -125,7 +161,7 @@
   /* Final TAP word — same font size as .word-letter */
   .phase-tap { position:absolute; z-index:3; opacity:0; text-align:center; }
   .tap-word {
-    font-family:'Bebas Neue',sans-serif;
+    font-family:'Roboto',sans-serif;font-weight:900;
     font-size: var(--tap-size);
     color:var(--cyan);
     text-shadow:0 0 30px var(--cyan-glow),0 0 80px rgba(108,99,255,0.2),0 0 160px rgba(108,99,255,0.1);
@@ -138,15 +174,16 @@
     opacity:0; top:62%;
   }
   .tagline-sub {
-    font-family:'Share Tech Mono',monospace; font-size:clamp(10px,1.5vw,14px);
+    font-family:'Roboto',sans-serif; font-size:clamp(11px,1.6vw,16px);
     letter-spacing:6px; color:var(--cyan); opacity:0.5; text-transform:uppercase;
+    font-weight:500;
   }
   .tagline-cta {
-    font-family:'Rajdhani',sans-serif; font-size:clamp(15px,2.5vw,26px);
+    font-family:'Rajdhani',sans-serif; font-size:clamp(18px,3vw,30px);
     font-weight:300; letter-spacing:3px; color:var(--white); opacity:0.85; font-style:italic;
   }
   .tap-blink {
-    font-family:'Share Tech Mono',monospace; font-size:clamp(9px,1.2vw,11px);
+    font-family:'Roboto',sans-serif; font-size:clamp(9px,1.2vw,11px);
     color:var(--cyan-dim); letter-spacing:4px; margin-top:6px; animation:blinkTag 1.4s infinite;
   }
   @keyframes blinkTag{0%,100%{opacity:0.5}50%{opacity:0.1}}
@@ -162,7 +199,7 @@
     background:rgba(12,12,12,0.92); backdrop-filter:blur(16px);
   }
   .nav-logo {
-    font-family:'Bebas Neue',sans-serif; font-size:30px;
+    font-family:'Roboto',sans-serif;font-weight:900; font-size:34px;
     color:var(--cyan); letter-spacing:8px; text-shadow:0 0 20px var(--cyan-glow);
     display:flex; align-items:center; gap:0; cursor:pointer;
   }
@@ -179,13 +216,13 @@
   }
   .nav-links { display:flex; gap:40px; list-style:none; }
   .nav-links a {
-    font-family:'Share Tech Mono',monospace; font-size:11px;
+    font-family:'Roboto',sans-serif; font-size:13px; font-weight:500;
     letter-spacing:3px; text-transform:uppercase;
     color:var(--grey2); text-decoration:none; transition:color 0.2s;
   }
   .nav-links a:hover { color:var(--cyan); text-shadow:0 0 10px var(--cyan-glow); }
   .nav-btn {
-    font-family:'Share Tech Mono',monospace; font-size:11px;
+    font-family:'Roboto',sans-serif; font-size:13px; font-weight:600;
     letter-spacing:3px; padding:10px 24px;
     border:1px solid var(--cyan); color:var(--cyan);
     background:transparent; cursor:pointer; transition:all 0.2s;
@@ -212,13 +249,13 @@
   }
   @keyframes orbPulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:1}50%{transform:translate(-50%,-50%) scale(1.15);opacity:0.6}}
   .hero-eyebrow {
-    font-family:'Share Tech Mono',monospace; font-size:11px;
+    font-family:'Roboto',sans-serif; font-size:12px;
     letter-spacing:6px; color:var(--orange); text-transform:uppercase;
     margin-bottom:28px; border:1px solid rgba(255,107,43,0.3);
     padding:6px 20px; display:inline-block;
   }
   .hero-title {
-    font-family:'Bebas Neue',sans-serif; font-size:clamp(100px,22vw,280px);
+    font-family:'Roboto',sans-serif;font-weight:900; font-size:clamp(80px,15vw,200px);
     line-height:0.9; color:var(--cyan);
     text-shadow:0 0 60px var(--cyan-glow),0 0 120px rgba(108,99,255,0.1);
     letter-spacing:20px; margin-bottom:16px; position:relative; z-index:1;
@@ -227,27 +264,27 @@
     display:flex; gap:clamp(16px,3vw,48px); margin-bottom:28px; position:relative; z-index:1;
   }
   .hero-word {
-    font-family:'Rajdhani',sans-serif; font-size:clamp(12px,1.8vw,18px);
+    font-family:'Rajdhani',sans-serif; font-size:clamp(14px,2.2vw,22px);
     font-weight:300; letter-spacing:5px; text-transform:uppercase; color:var(--grey2);
   }
   .hero-word b { color:var(--cyan); font-weight:700; }
   .hero-divider { color:var(--grey); opacity:0.4; font-family:'Share Tech Mono',monospace; }
   .hero-tagline {
-    font-family:'Rajdhani',sans-serif; font-size:clamp(18px,3vw,32px);
+    font-family:'Rajdhani',sans-serif; font-size:clamp(24px,4vw,44px);
     font-weight:300; letter-spacing:2px; color:var(--white); opacity:0.8;
     margin-bottom:52px; font-style:italic; position:relative; z-index:1;
   }
   .hero-actions { display:flex; gap:20px; align-items:center; position:relative; z-index:1; }
   .btn-primary {
-    font-family:'Share Tech Mono',monospace; font-size:12px;
-    letter-spacing:3px; padding:16px 40px;
+    font-family:'Roboto',sans-serif; font-size:14px;
+    letter-spacing:2px; padding:16px 40px;
     background:var(--cyan); color:var(--bg); border:none; cursor:pointer;
-    text-transform:uppercase; transition:all 0.25s; font-weight:bold;
+    text-transform:uppercase; transition:all 0.25s; font-weight:700;
   }
   .btn-primary:hover { box-shadow:0 0 40px var(--cyan-glow); transform:translateY(-2px); }
   .btn-ghost {
-    font-family:'Share Tech Mono',monospace; font-size:12px;
-    letter-spacing:3px; padding:16px 40px;
+    font-family:'Roboto',sans-serif; font-size:14px;
+    letter-spacing:2px; padding:16px 40px;
     background:transparent; color:var(--grey2);
     border:1px solid var(--grey); cursor:pointer;
     text-transform:uppercase; transition:all 0.25s; opacity:0.7;
@@ -256,7 +293,7 @@
   .scroll-hint {
     position:absolute; bottom:36px;
     display:flex; flex-direction:column; align-items:center; gap:8px;
-    font-family:'Share Tech Mono',monospace; font-size:9px;
+    font-family:'Roboto',sans-serif; font-size:10px;
     letter-spacing:4px; color:var(--grey2); text-transform:uppercase;
   }
   .scroll-line {
@@ -279,7 +316,7 @@
   @keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
   .status-item {
     display:flex; align-items:center; gap:8px; flex-shrink:0;
-    font-family:'Share Tech Mono',monospace; font-size:10px;
+    font-family:'Roboto',sans-serif; font-size:11px;
     letter-spacing:2px; color:var(--grey2); text-transform:uppercase; white-space:nowrap;
   }
   .status-dot {
@@ -290,12 +327,12 @@
 
   .features { padding:120px 48px; max-width:1300px; margin:0 auto; }
   .section-label {
-    font-family:'Share Tech Mono',monospace; font-size:11px;
+    font-family:'Roboto',sans-serif; font-size:12px; font-weight:500;
     letter-spacing:5px; color:var(--orange); text-transform:uppercase;
     margin-bottom:12px; opacity:0.8;
   }
   .section-title {
-    font-family:'Bebas Neue',sans-serif; font-size:clamp(44px,7vw,88px);
+    font-family:'Roboto',sans-serif;font-weight:900; font-size:clamp(48px,8vw,96px);
     letter-spacing:4px; color:var(--white); margin-bottom:64px; line-height:1;
   }
   .section-title span { color:var(--cyan); }
@@ -315,17 +352,17 @@
   .feature-card:hover::before { transform:scaleX(1); }
   .feature-card:hover { background:var(--bg3); }
   .feature-num {
-    font-family:'Share Tech Mono',monospace; font-size:10px;
+    font-family:'Roboto',sans-serif; font-size:11px;
     letter-spacing:3px; color:var(--cyan); opacity:0.4; margin-bottom:20px;
   }
   .feature-icon { font-size:26px; margin-bottom:18px; }
   .feature-title {
-    font-family:'Bebas Neue',sans-serif; font-size:26px;
-    letter-spacing:3px; color:var(--white); margin-bottom:14px;
+    font-family:'Roboto',sans-serif;font-weight:900; font-size:28px;
+    letter-spacing:2px; color:var(--white); margin-bottom:14px;
   }
   .feature-desc {
-    font-family:'Rajdhani',sans-serif; font-size:15px;
-    font-weight:300; line-height:1.7; color:var(--grey2);
+    font-family:'Roboto',sans-serif; font-size:15px;
+    font-weight:400; line-height:1.7; color:var(--grey2);
   }
 
   .pipeline {
@@ -342,16 +379,16 @@
   .pipeline-step:hover { border-color:var(--cyan-dim); background:var(--bg3); }
   .pipeline-step+.pipeline-step { border-left:none; }
   .step-num {
-    font-family:'Share Tech Mono',monospace; font-size:9px;
+    font-family:'Roboto',sans-serif; font-size:10px;
     letter-spacing:3px; color:var(--cyan); opacity:0.4; margin-bottom:16px;
   }
   .step-title {
-    font-family:'Bebas Neue',sans-serif; font-size:24px;
+    font-family:'Roboto',sans-serif;font-weight:900; font-size:24px;
     letter-spacing:3px; color:var(--cyan); margin-bottom:10px;
   }
   .step-desc {
-    font-family:'Rajdhani',sans-serif; font-size:13px;
-    font-weight:300; line-height:1.6; color:var(--grey2);
+    font-family:'Roboto',sans-serif; font-size:14px;
+    font-weight:400; line-height:1.7; color:var(--grey2);
   }
   .step-arrow {
     position:absolute; right:-12px; top:50%; transform:translateY(-50%);
@@ -373,7 +410,7 @@
   .models-ticker::after{right:0;background:linear-gradient(-90deg,var(--bg2),transparent);}
   .ticker-track { display:flex; gap:64px; animation:ticker 22s linear infinite; white-space:nowrap; }
   .ticker-item {
-    font-family:'Bebas Neue',sans-serif; font-size:18px;
+    font-family:'Roboto',sans-serif;font-weight:900; font-size:18px;
     letter-spacing:4px; color:var(--grey); transition:color 0.3s; flex-shrink:0;
   }
   .ticker-item:hover { color:var(--cyan); text-shadow:0 0 10px var(--cyan-glow); }
@@ -381,18 +418,18 @@
 
   .cta-section { padding:160px 48px; text-align:center; position:relative; overflow:hidden; }
   .cta-section::before {
-    content:'TAP'; position:absolute; font-family:'Bebas Neue',sans-serif;
+    content:'TAP'; position:absolute; font-family:'Roboto',sans-serif;font-weight:900;
     font-size:40vw; color:rgba(108,99,255,0.025); top:50%; left:50%;
     transform:translate(-50%,-50%); letter-spacing:20px; pointer-events:none; user-select:none;
   }
   .cta-title {
-    font-family:'Bebas Neue',sans-serif; font-size:clamp(48px,9vw,110px);
+    font-family:'Roboto',sans-serif;font-weight:900; font-size:clamp(52px,10vw,120px);
     letter-spacing:6px; color:var(--white); line-height:1;
     margin-bottom:16px; position:relative; z-index:1;
   }
   .cta-title span { color:var(--cyan); text-shadow:0 0 30px var(--cyan-glow); }
   .cta-sub {
-    font-family:'Rajdhani',sans-serif; font-size:18px;
+    font-family:'Roboto',sans-serif; font-size:20px;
     font-weight:300; letter-spacing:3px; color:var(--grey2);
     margin-bottom:48px; position:relative; z-index:1; font-style:italic;
   }
@@ -402,15 +439,15 @@
     display:flex; align-items:center; justify-content:space-between; background:var(--bg2);
   }
   .footer-logo {
-    font-family:'Bebas Neue',sans-serif; font-size:22px;
+    font-family:'Roboto',sans-serif;font-weight:900; font-size:22px;
     letter-spacing:8px; color:var(--cyan); opacity:0.6;
   }
   .footer-mid {
-    font-family:'Share Tech Mono',monospace; font-size:10px;
+    font-family:'Roboto',sans-serif; font-size:12px;
     letter-spacing:4px; color:var(--grey2); text-transform:uppercase;
   }
   .footer-right {
-    font-family:'Share Tech Mono',monospace; font-size:10px;
+    font-family:'Roboto',sans-serif; font-size:12px;
     letter-spacing:2px; color:var(--grey); opacity:0.5;
   }
 
@@ -431,24 +468,24 @@
   .lp-auth-card{width:380px;background:#0A1520;border:1px solid var(--line);border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.8);animation:popInAuth .22s ease;overflow:hidden;position:relative}
   @keyframes popInAuth{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
   .lp-auth-header{padding:24px 28px 16px;text-align:center}
-  .lp-auth-logo{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--cyan);letter-spacing:8px;text-shadow:0 0 20px var(--cyan-glow)}
+  .lp-auth-logo{font-family:'Roboto',sans-serif;font-weight:900;font-size:36px;color:var(--cyan);letter-spacing:8px;text-shadow:0 0 20px var(--cyan-glow)}
   .lp-auth-sub{font-family:'Rajdhani',sans-serif;font-size:13px;color:var(--grey2);margin-top:4px}
   .lp-auth-tabs{display:flex;border-bottom:1px solid var(--line)}
-  .lp-auth-tab{flex:1;padding:10px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--grey2);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;text-transform:uppercase}
+  .lp-auth-tab{flex:1;padding:10px;text-align:center;font-family:'Roboto',sans-serif;font-size:13px;letter-spacing:2px;color:var(--grey2);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;text-transform:uppercase}
   .lp-auth-tab:hover{color:var(--white)}.lp-auth-tab.on{color:var(--cyan);border-bottom-color:var(--cyan)}
   .lp-auth-body{padding:20px 28px 24px}
   .lp-auth-field{margin-bottom:14px}
-  .lp-auth-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--grey2);margin-bottom:5px;display:block;text-transform:uppercase}
+  .lp-auth-label{font-family:'Roboto',sans-serif;font-size:12px;letter-spacing:2px;color:var(--grey2);margin-bottom:5px;display:block;text-transform:uppercase}
   .lp-auth-input{width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg2);color:var(--white);font-size:13px;font-family:'Rajdhani',sans-serif;outline:none;letter-spacing:1px}
   .lp-auth-input:focus{border-color:var(--cyan);box-shadow:0 0 10px rgba(108,99,255,.15)}
   .lp-auth-input::placeholder{color:var(--grey)}
-  .lp-auth-submit{width:100%;padding:12px;border:none;background:var(--cyan);color:var(--bg);font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:.2s;margin-top:8px;font-weight:bold}
+  .lp-auth-submit{width:100%;padding:12px;border:none;background:var(--cyan);color:var(--bg);font-family:'Roboto',sans-serif;font-size:14px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:.2s;margin-top:8px;font-weight:bold}
   .lp-auth-submit:hover{box-shadow:0 0 30px var(--cyan-glow)}.lp-auth-submit:disabled{opacity:.5;cursor:not-allowed}
-  .lp-auth-err{font-family:'Share Tech Mono',monospace;font-size:10px;color:#ff6b6b;margin-top:8px;min-height:14px;letter-spacing:1px}
+  .lp-auth-err{font-family:'Roboto',sans-serif;font-size:12px;color:#ff6b6b;margin-top:8px;min-height:14px;letter-spacing:1px}
   .lp-auth-skip{text-align:center;margin:14px 0 20px;font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--grey2)}
   .lp-auth-skip a{color:var(--cyan);cursor:pointer;text-decoration:none;letter-spacing:1px}.lp-auth-skip a:hover{text-decoration:underline}
   .lp-auth-close{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--grey2);font-size:16px;cursor:pointer;padding:4px 8px;transition:.15s}.lp-auth-close:hover{color:var(--white)}
-  .lp-user-btn{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;padding:8px 16px;border:1px solid var(--cyan);color:var(--cyan);background:transparent;cursor:pointer;transition:all .2s;text-transform:uppercase;display:flex;align-items:center;gap:6px;margin-left:20px}
+  .lp-user-btn{font-family:'Roboto',sans-serif;font-size:13px;letter-spacing:2px;padding:8px 16px;border:1px solid var(--cyan);color:var(--cyan);background:transparent;cursor:pointer;transition:all .2s;text-transform:uppercase;display:flex;align-items:center;gap:6px;margin-left:20px}
   .lp-user-btn:hover{background:rgba(108,99,255,.08);box-shadow:0 0 15px var(--cyan-glow)}
 </style>
 </head>
@@ -456,6 +493,15 @@
 
 <canvas id="matrix-canvas"></canvas>
 <div class="grid-bg"></div>
+
+<!-- PERSISTENT HEADER — always visible, even during intro -->
+<div class="top-header">
+  <div class="top-header-logo">TAP</div>
+  <div class="top-header-right">
+    <button class="top-header-btn ghost" onclick="lpShowAuth('signin')">Login</button>
+    <a href="/chat" class="top-header-btn primary">Open Chat →</a>
+  </div>
+</div>
 
 <!-- INTRO -->
 <div id="intro">
@@ -815,34 +861,10 @@ runIntro();
 // ═══════════════════════════════════
 // SUPABASE AUTH FOR LANDING PAGE
 // ═══════════════════════════════════
-const LP_API = 'http://localhost:8000';
-let supa = null;
+const SUPABASE_URL = 'https://sqdioeitfrownfhyfrxo.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxZGlvZWl0ZnJvd25maHlmcnhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxNDM2NjIsImV4cCI6MjA4OTcxOTY2Mn0.pRcU6dXLyXsQanzvSx29esOxnARbo5GP9GhlbnP873I';
+const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let lpUser = null;
-
-// Fetch Supabase config from backend and initialize
-(async function initSupabase() {
-  try {
-    var r = await fetch(LP_API + '/api/supabase-config');
-    if (!r.ok) return;
-    var cfg = await r.json();
-    supa = window.supabase.createClient(cfg.url, cfg.anon_key);
-    // Check existing session
-    var res = await supa.auth.getSession();
-    if (res.data.session) {
-      lpUser = res.data.session.user;
-      var profRes = await supa.from('profiles').select('display_name, avatar_url').eq('id', lpUser.id).single();
-      var name = (profRes.data && profRes.data.display_name) || lpUser.email.split('@')[0];
-      var avHtml;
-      if (profRes.data && profRes.data.avatar_url) {
-        avHtml = '<img src="' + profRes.data.avatar_url + '" style="width:22px;height:22px;border-radius:50%;object-fit:cover" onerror="this.style.display=\'none\'"/>';
-      } else {
-        avHtml = '<span style="width:22px;height:22px;border-radius:50%;background:var(--cyan);display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:var(--bg);font-weight:700">' + name.slice(0,2).toUpperCase() + '</span>';
-      }
-      document.getElementById('lp-user-area').innerHTML =
-        '<button class="lp-user-btn" onclick="window.location.href=\'/chat\'">' + avHtml + name + '</button>';
-    }
-  } catch(e) { console.error('Supabase init failed:', e); }
-})();
 
 function launchTap() {
   // Show auth modal if not logged in, else go straight to chat
@@ -905,7 +927,6 @@ function lpRenderForm(tab) {
 }
 
 async function lpDoSignup() {
-  if (!supa) { alert('Auth service loading...'); return; }
   var name = (document.getElementById('lp-name').value || '').trim();
   var email = (document.getElementById('lp-email').value || '').trim();
   var pass = document.getElementById('lp-pass').value;
@@ -921,7 +942,6 @@ async function lpDoSignup() {
 }
 
 async function lpDoSignin() {
-  if (!supa) { alert('Auth service loading...'); return; }
   var email = (document.getElementById('lp-email').value || '').trim();
   var pass = document.getElementById('lp-pass').value;
   var errEl = document.getElementById('lp-err');
@@ -933,7 +953,26 @@ async function lpDoSignin() {
   lpCloseAuth(); window.location.href = '/chat';
 }
 
-// (Session check handled in initSupabase() above)
+// Check if already logged in on page load — load profile from DB
+(async function() {
+  var res = await supa.auth.getSession();
+  if (res.data.session) {
+    lpUser = res.data.session.user;
+    // Load display name from profiles table
+    var profRes = await supa.from('profiles').select('display_name, avatar_url').eq('id', lpUser.id).single();
+    var name = (profRes.data && profRes.data.display_name) || lpUser.email.split('@')[0];
+    var avHtml;
+    if (profRes.data && profRes.data.avatar_url) {
+      avHtml = '<img src="' + profRes.data.avatar_url + '" style="width:22px;height:22px;border-radius:50%;object-fit:cover" onerror="this.outerHTML=\'<span style=\\\'width:22px;height:22px;border-radius:50%;background:var(--cyan);display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:var(--bg);font-weight:700\\\'>' + name.slice(0,2).toUpperCase() + '</span>\'"/>';
+    } else {
+      avHtml = '<span style="width:22px;height:22px;border-radius:50%;background:var(--cyan);display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:var(--bg);font-weight:700">' + name.slice(0,2).toUpperCase() + '</span>';
+    }
+    document.getElementById('lp-user-area').innerHTML =
+      '<button class="lp-user-btn" onclick="window.location.href=\'/chat\'">' +
+        avHtml + name +
+      '</button>';
+  }
+})();
 </script>
 </body>
 </html>
