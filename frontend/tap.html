@@ -8,21 +8,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
 <style>
   :root {
-    --cyan: #00F5FF;
-    --cyan-dim: #007A8A;
-    --cyan-glow: rgba(0,245,255,0.35);
-    --cyan-soft: rgba(0,245,255,0.08);
+    --cyan: #6c63ff;
+    --cyan-dim: #5a52e0;
+    --cyan-glow: rgba(108,99,255,0.35);
+    --cyan-soft: rgba(108,99,255,0.08);
     --orange: #FF6B2B;
     --orange-glow: rgba(255,107,43,0.4);
-    --green: #00FF88;
-    --bg: #020408;
-    --bg2: #060C10;
-    --bg3: #0A1520;
-    --white: #D0F0F5;
-    --grey: #2A4A55;
-    --grey2: #4A7A88;
-    --line: rgba(0,245,255,0.15);
-    --line2: rgba(0,245,255,0.07);
+    --green: #4ecdc4;
+    --bg: #0c0c0c;
+    --bg2: #161616;
+    --bg3: #1e1e1e;
+    --white: #e8e6e1;
+    --grey: #2a2a2a;
+    --grey2: #9a9890;
+    --line: rgba(108,99,255,0.15);
+    --line2: rgba(108,99,255,0.07);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   html { scroll-behavior:smooth; }
@@ -57,7 +57,7 @@
   #intro-matrix { position:absolute; inset:0; z-index:0; opacity:0.15; pointer-events:none; }
   .intro-vignette {
     position:absolute; inset:0; z-index:1; pointer-events:none;
-    background:radial-gradient(ellipse 70% 70% at 50% 50%,transparent 40%,rgba(2,4,8,0.9) 100%);
+    background:radial-gradient(ellipse 70% 70% at 50% 50%,transparent 40%,rgba(12,12,12,0.9) 100%);
   }
   #boot-text {
     position:absolute; top:8%; left:50%; transform:translateX(-50%);
@@ -94,7 +94,7 @@
     font-family:'Bebas Neue',sans-serif;
     font-size: var(--tap-size);
     color:var(--cyan);
-    text-shadow:0 0 30px var(--cyan-glow),0 0 80px rgba(0,245,255,0.15);
+    text-shadow:0 0 30px var(--cyan-glow),0 0 80px rgba(108,99,255,0.15);
     line-height:1; display:inline-block; flex-shrink:0;
     transition: letter-spacing 0.6s cubic-bezier(0.4,0,0.2,1);
   }
@@ -128,7 +128,7 @@
     font-family:'Bebas Neue',sans-serif;
     font-size: var(--tap-size);
     color:var(--cyan);
-    text-shadow:0 0 30px var(--cyan-glow),0 0 80px rgba(0,245,255,0.2),0 0 160px rgba(0,245,255,0.1);
+    text-shadow:0 0 30px var(--cyan-glow),0 0 80px rgba(108,99,255,0.2),0 0 160px rgba(108,99,255,0.1);
     line-height:1; letter-spacing: clamp(8px,2vw,24px);
   }
 
@@ -159,7 +159,7 @@
     position:fixed; top:0; left:0; right:0; z-index:50;
     display:flex; align-items:center; justify-content:flex-start;
     padding:18px 48px; border-bottom:1px solid var(--line);
-    background:rgba(2,4,8,0.92); backdrop-filter:blur(16px);
+    background:rgba(12,12,12,0.92); backdrop-filter:blur(16px);
   }
   .nav-logo {
     font-family:'Bebas Neue',sans-serif; font-size:30px;
@@ -206,7 +206,7 @@
   }
   .hero::before {
     content:''; position:absolute; width:700px; height:700px;
-    background:radial-gradient(circle,rgba(0,245,255,0.05) 0%,transparent 70%);
+    background:radial-gradient(circle,rgba(108,99,255,0.05) 0%,transparent 70%);
     top:50%; left:50%; transform:translate(-50%,-50%);
     pointer-events:none; animation:orbPulse 5s ease-in-out infinite;
   }
@@ -220,7 +220,7 @@
   .hero-title {
     font-family:'Bebas Neue',sans-serif; font-size:clamp(100px,22vw,280px);
     line-height:0.9; color:var(--cyan);
-    text-shadow:0 0 60px var(--cyan-glow),0 0 120px rgba(0,245,255,0.1);
+    text-shadow:0 0 60px var(--cyan-glow),0 0 120px rgba(108,99,255,0.1);
     letter-spacing:20px; margin-bottom:16px; position:relative; z-index:1;
   }
   .hero-expand {
@@ -283,8 +283,8 @@
     letter-spacing:2px; color:var(--grey2); text-transform:uppercase; white-space:nowrap;
   }
   .status-dot {
-    width:6px; height:6px; border-radius:50%; background:var(--green);
-    box-shadow:0 0 8px var(--green); animation:statusPulse 2s infinite;
+    width:6px; height:6px; border-radius:50%; background:#4ecdc4;
+    box-shadow:0 0 8px #4ecdc4; animation:statusPulse 2s infinite;
   }
   @keyframes statusPulse{0%,100%{opacity:1}50%{opacity:0.3}}
 
@@ -382,7 +382,7 @@
   .cta-section { padding:160px 48px; text-align:center; position:relative; overflow:hidden; }
   .cta-section::before {
     content:'TAP'; position:absolute; font-family:'Bebas Neue',sans-serif;
-    font-size:40vw; color:rgba(0,245,255,0.025); top:50%; left:50%;
+    font-size:40vw; color:rgba(108,99,255,0.025); top:50%; left:50%;
     transform:translate(-50%,-50%); letter-spacing:20px; pointer-events:none; user-select:none;
   }
   .cta-title {
@@ -440,7 +440,7 @@
   .lp-auth-field{margin-bottom:14px}
   .lp-auth-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--grey2);margin-bottom:5px;display:block;text-transform:uppercase}
   .lp-auth-input{width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg2);color:var(--white);font-size:13px;font-family:'Rajdhani',sans-serif;outline:none;letter-spacing:1px}
-  .lp-auth-input:focus{border-color:var(--cyan);box-shadow:0 0 10px rgba(0,245,255,.15)}
+  .lp-auth-input:focus{border-color:var(--cyan);box-shadow:0 0 10px rgba(108,99,255,.15)}
   .lp-auth-input::placeholder{color:var(--grey)}
   .lp-auth-submit{width:100%;padding:12px;border:none;background:var(--cyan);color:var(--bg);font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:.2s;margin-top:8px;font-weight:bold}
   .lp-auth-submit:hover{box-shadow:0 0 30px var(--cyan-glow)}.lp-auth-submit:disabled{opacity:.5;cursor:not-allowed}
@@ -449,7 +449,7 @@
   .lp-auth-skip a{color:var(--cyan);cursor:pointer;text-decoration:none;letter-spacing:1px}.lp-auth-skip a:hover{text-decoration:underline}
   .lp-auth-close{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--grey2);font-size:16px;cursor:pointer;padding:4px 8px;transition:.15s}.lp-auth-close:hover{color:var(--white)}
   .lp-user-btn{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;padding:8px 16px;border:1px solid var(--cyan);color:var(--cyan);background:transparent;cursor:pointer;transition:all .2s;text-transform:uppercase;display:flex;align-items:center;gap:6px;margin-left:20px}
-  .lp-user-btn:hover{background:rgba(0,245,255,.08);box-shadow:0 0 15px var(--cyan-glow)}
+  .lp-user-btn:hover{background:rgba(108,99,255,.08);box-shadow:0 0 15px var(--cyan-glow)}
 </style>
 </head>
 <body>
@@ -660,124 +660,12 @@
 
 <script>
 // ═══════════════════════════════════
-// AUDIO ENGINE — Premium synthesized sounds
-// ═══════════════════════════════════
-// NOTE: Browsers require a user gesture (click/keypress) before AudioContext
-// can produce sound. The boot prompt below captures that gesture, then
-// the full animation runs with audio immediately after.
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
-let audioCtx = null;
-
-function ensureAudio() {
-  if (!audioCtx) audioCtx = new AudioCtx();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  return audioCtx;
-}
-
-// Crisp mechanical keyboard click — layered tone + noise transient
-function playKey(variant = 0, vol = 0.28) {
-  try {
-    const ctx = ensureAudio();
-    const sr = ctx.sampleRate;
-    const now = ctx.currentTime;
-
-    // ── Tonal click body (short sine burst) ──
-    const osc = ctx.createOscillator();
-    const oscGain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(1400 + variant * 180, now);
-    osc.frequency.exponentialRampToValueAtTime(600 + variant * 80, now + 0.018);
-    oscGain.gain.setValueAtTime(vol * 0.6, now);
-    oscGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.022);
-    osc.connect(oscGain); oscGain.connect(ctx.destination);
-    osc.start(now); osc.stop(now + 0.025);
-
-    // ── Noise transient (the 'click' attack) ──
-    const bufLen = Math.floor(sr * 0.012);
-    const nBuf = ctx.createBuffer(1, bufLen, sr);
-    const nd = nBuf.getChannelData(0);
-    for (let i = 0; i < bufLen; i++) {
-      nd[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufLen * 0.3));
-    }
-    const nSrc = ctx.createBufferSource();
-    nSrc.buffer = nBuf;
-    const nFilt = ctx.createBiquadFilter();
-    nFilt.type = 'bandpass';
-    nFilt.frequency.value = 5000 + variant * 400;
-    nFilt.Q.value = 0.8;
-    const nGain = ctx.createGain();
-    nGain.gain.setValueAtTime(vol * 0.5, now);
-    nSrc.connect(nFilt); nFilt.connect(nGain); nGain.connect(ctx.destination);
-    nSrc.start(now);
-  } catch(e) {}
-}
-
-// Soft word-reveal chime — gentle sine ping with reverb tail
-function playEnterSound() {
-  try {
-    const ctx = ensureAudio();
-    const now = ctx.currentTime;
-
-    // Two-note soft chime
-    [880, 1108].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0, now + i * 0.04);
-      gain.gain.linearRampToValueAtTime(0.18, now + i * 0.04 + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.04 + 0.3);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(now + i * 0.04);
-      osc.stop(now + i * 0.04 + 0.35);
-    });
-  } catch(e) {}
-}
-
-// Deep cinematic TAP impact — sub thud + high shimmer
-function playThud() {
-  try {
-    const ctx = ensureAudio();
-    const sr = ctx.sampleRate;
-    const now = ctx.currentTime;
-
-    // ── Sub thud (pitched noise decay) ──
-    const bufLen = Math.floor(sr * 0.5);
-    const buf = ctx.createBuffer(1, bufLen, sr);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < bufLen; i++) {
-      const t = i / sr;
-      d[i] = (Math.random() * 2 - 1) * Math.exp(-t * 8);
-    }
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    const filt = ctx.createBiquadFilter();
-    filt.type = 'lowpass';
-    filt.frequency.setValueAtTime(300, now);
-    filt.frequency.exponentialRampToValueAtTime(60, now + 0.3);
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.9, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
-    src.connect(filt); filt.connect(gain); gain.connect(ctx.destination);
-    src.start(now);
-
-    // ── High shimmer (bright sine ring) ──
-    const osc = ctx.createOscillator();
-    const oGain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(2200, now);
-    osc.frequency.exponentialRampToValueAtTime(800, now + 0.12);
-    oGain.gain.setValueAtTime(0.25, now);
-    oGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
-    osc.connect(oGain); oGain.connect(ctx.destination);
-    osc.start(now); osc.stop(now + 0.28);
-  } catch(e) {}
-}
+// (Audio engine removed — silent animation)
 
 // ═══════════════════════════════════
 // MATRIX RAIN
 // ═══════════════════════════════════
-function initMatrix(id, color='#00F5FF', fs=13) {
+function initMatrix(id, color='#6c63ff', fs=13) {
   const canvas = document.getElementById(id);
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -788,7 +676,7 @@ function initMatrix(id, color='#00F5FF', fs=13) {
   function reset() { drops = Array(Math.floor(canvas.width/fs)).fill(0).map(()=>Math.random()*-80); }
   reset(); window.addEventListener('resize', reset);
   setInterval(()=>{
-    ctx.fillStyle = 'rgba(2,4,8,0.045)';
+    ctx.fillStyle = 'rgba(12,12,12,0.045)';
     ctx.fillRect(0,0,canvas.width,canvas.height);
     ctx.fillStyle = color;
     ctx.font = `${fs}px Share Tech Mono,monospace`;
@@ -799,8 +687,8 @@ function initMatrix(id, color='#00F5FF', fs=13) {
     }
   }, 45);
 }
-initMatrix('matrix-canvas','#00F5FF',13);
-initMatrix('intro-matrix','#00F5FF',14);
+initMatrix('matrix-canvas','#6c63ff',13);
+initMatrix('intro-matrix','#6c63ff',14);
 
 // ═══════════════════════════════════
 // BOOT TEXT
@@ -826,10 +714,8 @@ async function typeBootText(){
     span.className='boot-line'; container.appendChild(span); span.style.opacity='1';
     for(let i=0;i<line.length;i++){
       span.textContent = line.slice(0,i+1);
-      if(line[i]!==' ') playKey(Math.random()*3, 0.18);
       await delay(22+Math.random()*18);
     }
-    playEnterSound();
     await delay(70);
   }
 }
@@ -862,7 +748,7 @@ async function animateNavLogo() {
   for (let i = 0; i < letters.length; i++) {
     if (i > 0) await delay(160);
     text.textContent += letters[i];
-    playKey(i, 0.22);
+    
   }
 }
 
@@ -875,7 +761,7 @@ async function runIntro(){
     if(i>1) await delay(200);
     const wb = document.getElementById('wb'+i);
     wb.style.opacity='1'; wb.style.transform='translateY(0)';
-    playEnterSound();
+    
   }
   await delay(1600);
 
@@ -905,12 +791,12 @@ async function runIntro(){
     transition:'opacity 0.5s ease',
     transform:'translateY(0)'
   });
-  playThud();
+  
   await delay(1000);
 
   // ── Phase 4: Tagline ──
   set(phaseTagline,{opacity:'1',transition:'opacity 0.9s ease'});
-  for(let i=0;i<5;i++){ await delay(80); playKey(i%3,0.2); }
+  for(let i=0;i<5;i++){ await delay(80);  }
 
   await delay(2400);
   exitIntro();
@@ -922,46 +808,9 @@ async function runIntro(){
 // Matrix rain starts immediately (no audio needed), but the full boot
 // sequence waits for one click/keypress so audio plays from the very start.
 
-// Inject the boot prompt into the intro overlay
-const bootPrompt = document.createElement('div');
-bootPrompt.id = 'boot-prompt';
-bootPrompt.style.cssText = 'position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;cursor:pointer;';
-bootPrompt.innerHTML = ''
-  + '<div style="font-family:\'Share Tech Mono\',monospace;font-size:clamp(10px,1.3vw,13px);color:var(--cyan-dim);letter-spacing:2px;text-align:center;line-height:2.2;margin-bottom:32px;opacity:0.5;">'
-  +   '> TAP SYSTEMS v2.4.1<br>'
-  +   '> ALL ENDPOINTS CONNECTED<br>'
-  +   '> AWAITING INPUT...'
-  + '</div>'
-  + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:clamp(80px,18vw,240px);color:var(--cyan);text-shadow:0 0 40px rgba(0,245,255,0.35),0 0 100px rgba(0,245,255,0.12);letter-spacing:clamp(8px,2vw,24px);line-height:1;">TAP</div>'
-  + '<div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:28px;">'
-  +   '<div style="width:1px;height:32px;background:linear-gradient(var(--cyan),transparent);opacity:0.3;"></div>'
-  +   '<div style="font-family:\'Share Tech Mono\',monospace;font-size:clamp(9px,1.1vw,11px);letter-spacing:5px;color:var(--cyan);text-transform:uppercase;animation:blinkTag 1.4s ease-in-out infinite;">[ click or press any key ]</div>'
-  + '</div>';
-intro.appendChild(bootPrompt);
+// Auto-start — skip boot prompt, go straight to T·A·P animation
 
-let introStarted = false;
-
-async function startWithAudio() {
-  if (introStarted) return;
-  introStarted = true;
-
-  // THIS is the user gesture — create and unlock AudioContext NOW
-  ensureAudio();
-
-  // Fade out boot prompt instantly
-  bootPrompt.style.transition = 'opacity 0.3s ease';
-  bootPrompt.style.opacity = '0';
-  await delay(300);
-  bootPrompt.remove();
-
-  // Audio is now unlocked — run the full intro with sound
-  runIntro();
-}
-
-// Listen for any user gesture
-document.addEventListener('click', startWithAudio, { once: true });
-document.addEventListener('keydown', startWithAudio, { once: true });
-document.addEventListener('touchstart', startWithAudio, { once: true });
+runIntro();
 
 // ═══════════════════════════════════
 // SUPABASE AUTH FOR LANDING PAGE
