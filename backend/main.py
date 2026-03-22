@@ -240,6 +240,7 @@ class GenerateResponse(BaseModel):
     vendor: str
     latency_ms: int
     failover_from: str | None = None
+    reprompted_prompt: str | None = None
 
 @app.post("/api/generate", response_model=GenerateResponse)
 async def generate(req: GenerateRequest):
@@ -285,7 +286,8 @@ async def generate(req: GenerateRequest):
     return GenerateResponse(
         response=response_text, provider=provider, model_id=model_id,
         model_display_name=DISPLAY_NAMES.get(model_id, model_id), vendor=vendor,
-        latency_ms=int((time.time()-start)*1000), failover_from=failover_from)
+        latency_ms=int((time.time()-start)*1000), failover_from=failover_from,
+        reprompted_prompt=prompt if failover_from else None)
 
 # ─── Other endpoints ──────────────────────────────────────────────────────────
 @app.get("/health")
