@@ -1,14 +1,6 @@
 {
   "version": 2,
-  "routes": [
-    { "src": "^/$", "dest": "/tap.html" },
-    { "src": "^/tap$", "dest": "/tap.html" },
-    { "src": "^/chat$", "dest": "/index.html" },
-    { "src": "^/static/(.*)$", "dest": "/$1" },
-    { "src": "^/api/(.*)$", "dest": "/api/$1" }
-  ],
   "rewrites": [
-    { "source": "/", "destination": "/tap.html" },
-    { "source": "/chat", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "/tap.html" }
   ]
 }
